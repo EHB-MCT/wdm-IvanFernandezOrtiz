@@ -1,10 +1,13 @@
-[gd_scene load_steps=2 format=3 uid="uid://blweffwkmqcud"]
+[gd_scene load_steps=3 format=3 uid="uid://blweffwkmqcud"]
+
+[ext_resource type="Script" uid="uid://dtnqa7i3auyu6" path="res://scripts/Resume.cs" id="1_g7n6h"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dc88f"]
 
 [node name="Resume" type="Control"]
 layout_mode = 3
 anchors_preset = 0
+script = ExtResource("1_g7n6h")
 
 [node name="ColorRect" type="ColorRect" parent="."]
 layout_mode = 0
@@ -19,15 +22,15 @@ offset_right = 370.0
 offset_bottom = 468.0
 theme_override_constants/separation = 14
 
-[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer"]
+[node name="Header" type="HBoxContainer" parent="VBoxContainer"]
 layout_mode = 2
 
-[node name="NameLabel" type="Label" parent="VBoxContainer/HBoxContainer"]
+[node name="NameLabel" type="Label" parent="VBoxContainer/Header"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 text = "Name LastName"
 
-[node name="PositionLabel" type="Label" parent="VBoxContainer/HBoxContainer"]
+[node name="PositionLabel" type="Label" parent="VBoxContainer/Header"]
 layout_mode = 2
 size_flags_horizontal = 10
 theme_override_colors/font_color = Color(0, 0, 0, 1)
@@ -53,34 +56,34 @@ text = "Upbringing"
 layout_mode = 2
 text = "Gender"
 
-[node name="Education" type="VBoxContainer" parent="VBoxContainer/TabContainer"]
+[node name="EducationTab" type="VBoxContainer" parent="VBoxContainer/TabContainer"]
 visible = false
 layout_mode = 2
 metadata/_tab_index = 1
 
-[node name="Education" type="Label" parent="VBoxContainer/TabContainer/Education"]
+[node name="Education" type="Label" parent="VBoxContainer/TabContainer/EducationTab"]
 layout_mode = 2
 text = "Education: "
 
-[node name="EducationValue" type="Label" parent="VBoxContainer/TabContainer/Education"]
+[node name="EducationValue" type="Label" parent="VBoxContainer/TabContainer/EducationTab"]
 layout_mode = 2
 text = "EductationValue"
 
-[node name="Skills" type="VBoxContainer" parent="VBoxContainer/TabContainer"]
+[node name="SkillsTab" type="VBoxContainer" parent="VBoxContainer/TabContainer"]
 visible = false
 layout_mode = 2
 theme_override_constants/separation = 16
 metadata/_tab_index = 2
 
-[node name="SkillLabel" type="Label" parent="VBoxContainer/TabContainer/Skills"]
+[node name="SkillLabel" type="Label" parent="VBoxContainer/TabContainer/SkillsTab"]
 layout_mode = 2
 text = "skill 1"
 
-[node name="SkillLabel2" type="Label" parent="VBoxContainer/TabContainer/Skills"]
+[node name="SkillLabel2" type="Label" parent="VBoxContainer/TabContainer/SkillsTab"]
 layout_mode = 2
 text = "skill 2"
 
-[node name="SkillLabel3" type="Label" parent="VBoxContainer/TabContainer/Skills"]
+[node name="SkillLabel3" type="Label" parent="VBoxContainer/TabContainer/SkillsTab"]
 layout_mode = 2
 text = "skill 3"
 
