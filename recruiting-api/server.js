@@ -37,7 +37,7 @@ app.post("/api/log", async (req, res) => {
 });
 
 // Health check
-app.get("/", (req, res) => res.send("Recruiting API running on path ... "));
+app.get("/", (req, res) => res.send("Recruiting API running"));
 
 const port = process.env.PORT;
 app.listen(port, () => console.log(`API listening on port ${port}`));
