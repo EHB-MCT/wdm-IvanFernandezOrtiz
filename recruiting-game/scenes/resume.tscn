@@ -105,3 +105,5 @@ offset_top = 447.0
 offset_right = 382.0
 offset_bottom = 478.0
 text = "Choose this resume"
+
+[connection signal="tab_selected" from="VBoxContainer/TabContainer" to="." method="OnTabClicked"]
