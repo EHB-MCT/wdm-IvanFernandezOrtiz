@@ -13,7 +13,7 @@ public partial class CandidateLoader : Node
     {
         try
         {
-            var file = FileAccess.Open("res://assets/candidates.json", FileAccess.ModeFlags.Read);
+            var file = FileAccess.Open("res://data/candidates.json", FileAccess.ModeFlags.Read);
             if (file == null)
             {
                 GD.PrintErr("Failed to open candidates.json file");
@@ -25,7 +25,7 @@ public partial class CandidateLoader : Node
 
             _candidates = JsonSerializer.Deserialize<CandidateData[]>(jsonString);
             GD.Print($"Loaded {_candidates?.Length ?? 0} candidates");
-            
+
             if (_candidates != null && _candidates.Length > 0)
             {
                 for (int i = 0; i < Math.Min(3, _candidates.Length); i++)
