@@ -12,21 +12,80 @@ public partial class Main : Node
     private Label _MessageLabel;
     private Timer timer;
     private Label _TimeLeftLabel;
-
-    public void NewGame()
-    {
-        GetNode<Timer>("StartTimer").Start();
-    }
-
-    private static readonly System.Net.Http.HttpClient client = new System.Net.Http.HttpClient();
+    private PackedScene _resumeScene;
 
     public override void _Ready()
     {
+        // Load candidates from JSON
+        CandidateLoader.LoadCandidates();
+
         // Cache common nodes if they exist in the scene
         timer = GetNodeOrNull<Timer>("Timer");
         _MessageLabel = GetNode<Label>("Text");
         _TimeLeftLabel = GetNode<Label>("TimeLeft");
+
+        // Load the Resume scene for instantiation
+        _resumeScene = GD.Load<PackedScene>("res://scenes/resume.tscn");
+
+        // Start the game
+        NewGame();
     }
+
+    private void NewGame()
+    {
+        // Clear existing resumes
+        foreach (Node child in GetChildren())
+        {
+            if (child is Resume)
+            {
+                child.QueueFree();
+            }
+        }
+
+        // Get random candidates and create resumes
+        var candidates = CandidateLoader.GetAllCandidates();
+        if (candidates.Length == 0)
+        {
+            GD.PrintErr("No candidates loaded!");
+            return;
+        }
+
+        // Create 2-3 random resumes for the game
+        int resumeCount = Math.Min(3, candidates.Length);
+        var usedIndices = new System.Collections.Generic.HashSet<int>();
+        var random = new Random();
+
+        for (int i = 0; i < resumeCount; i++)
+        {
+            int randomIndex;
+            do
+            {
+                randomIndex = random.Next(candidates.Length);
+            } while (usedIndices.Contains(randomIndex));
+
+            usedIndices.Add(randomIndex);
+            var candidate = candidates[randomIndex];
+
+            var resumeInstance = _resumeScene.Instantiate<Resume>();
+            AddChild(resumeInstance);
+            resumeInstance.SetResumeData(
+                candidate.candidateName,
+                candidate.position,
+                candidate.gender,
+                candidate.education,
+                candidate.skills,
+                candidate.picturePath,
+                candidate.workExperience
+            );
+            resumeInstance.ResumeChosen += OnResumeChosen;
+        }
+
+        GetNode<Timer>("Timer").Start();
+    }
+
+
+
+    private static readonly System.Net.Http.HttpClient client = new System.Net.Http.HttpClient();
 
     public override void _Process(double delta)
     {
@@ -42,7 +101,7 @@ public partial class Main : Node
     private async void OnResumeChosen(Godot.Collections.Dictionary data)
     {
 
-            GD.Print("Main received chosen candidate");
+        GD.Print("Main received chosen candidate");
 
         // Ensure we have a timer reference
         if (timer == null)
