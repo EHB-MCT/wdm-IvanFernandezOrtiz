@@ -1,4 +1,5 @@
 using Godot;
+using Godot.Collections;
 using System;
 using System.Collections.Generic;
 
@@ -25,7 +26,10 @@ public partial class Resume : Control
     private VBoxContainer _skillsTab;
     private TextureRect _textureRect;
     private Button _chooseButton;
-    private List<string> _choices = new List<string>();
+    private List<string> viewedTabs = new List<string>();
+    private string[] tabs = { "Profile", "Education", "Skills", "Work" };
+
+    private float timeTaken;
 
     public override void _Ready()
     {
@@ -43,7 +47,7 @@ public partial class Resume : Control
             var skillLabel = new Label();
             skillLabel.Text = Skills[i];
             _skillsTab.AddChild(skillLabel);
-            GD.Print(_skillsTab.GetChildren());
+            // GD.Print(_skillsTab.GetChildren());
         }
 
         _chooseButton = GetNode<Button>("ChooseButton");
@@ -73,14 +77,25 @@ public partial class Resume : Control
 
     private void OnChooseButtonPressed()
     {
-        GD.Print($"Candidate {CandidateName} selected.");
-        EmitSignal("ResumeChosen", CandidateName);
+        // GD.Print($"Candidate {CandidateName} selected.");
+        var data = new Dictionary {
+        {"candidate_id", CandidateName },
+        {"candidate_gender", Gender},
+        {"candidate_position", Position},
+        {"candidate_education", Education},
+        {"candidate_workExperience", WorkExperience},
+        {"candidate_skills", Skills},
+        {"tabs_viewed", new Array<string>(viewedTabs) },
+        {"time_taken", timeTaken}
+    };
+
+        EmitSignal("ResumeChosen", data);
         Hide();
     }
 
-    private void OnTabClicked(string name)
+    private void OnTabClicked(int tabIndex)
     {
-        _choices.Add(name);
-        GD.Print(_choices);
+        viewedTabs.Add(tabs[tabIndex]);
+        GD.Print(viewedTabs);
     }
 }
