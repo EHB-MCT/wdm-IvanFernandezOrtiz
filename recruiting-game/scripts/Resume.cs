@@ -43,8 +43,8 @@ public partial class Resume : Control
         _chooseButton = GetNode<Button>("ChooseButton");
 
         // Validate all nodes were found
-        if (_nameLabel == null || _positionLabel == null || _genderLabel == null || 
-            _educationLabel == null || _workLabel == null || _skillsTab == null || 
+        if (_nameLabel == null || _positionLabel == null || _genderLabel == null ||
+            _educationLabel == null || _workLabel == null || _skillsTab == null ||
             _textureRect == null || _chooseButton == null)
         {
             GD.PrintErr("Resume: Failed to find required nodes in scene tree");
@@ -57,7 +57,8 @@ public partial class Resume : Control
         // Initialize skills display if Skills array is available
         GD.Print($"Resume._Ready: Skills array length = {Skills?.Length ?? 0}");
         GD.Print($"Resume._Ready: Skills content = {(Skills != null ? string.Join(", ", Skills) : "null")}");
-        
+        GD.Print(Skills);
+        GD.Print(_skillsTab);
         if (Skills != null && _skillsTab != null)
         {
             // Clear existing skill labels
@@ -88,34 +89,38 @@ public partial class Resume : Control
     {
         if (_nameLabel != null && CandidateName != null)
             _nameLabel.Text = CandidateName;
-        
+
         if (_positionLabel != null && CandidatePosition != null)
             _positionLabel.Text = CandidatePosition;
-        
+
         if (_genderLabel != null && Gender != null)
             _genderLabel.Text = Gender;
-        
+
         if (_educationLabel != null && Education != null)
             _educationLabel.Text = Education;
-        
+
         if (_textureRect != null && PicturePath != null)
             _textureRect.SetTexture(PicturePath);
-        
+
         if (_workLabel != null && WorkExperience != null)
             _workLabel.Text = WorkExperience;
 
         // Update skills display
         if (_skillsTab != null && Skills != null)
         {
-            int skillIndex = 0;
-            var children = _skillsTab.GetChildren();
-            foreach (Node child in children)
+            // Clear existing skill labels
+            foreach (Node child in _skillsTab.GetChildren())
             {
-                if (child is Label label && skillIndex < Skills.Length)
-                {
-                    label.Text = Skills[skillIndex];
-                    skillIndex++;
-                }
+                child.QueueFree();
+            }
+
+            // Add new skill labels
+            for (int i = 0; i < Skills.Length; i++)
+            {
+                var skillLabel = new Label();
+                skillLabel.Text = Skills[i];
+                _skillsTab.AddChild(skillLabel);
+                GD.Print($"RefreshUI: Added skill label: {Skills[i]}");
             }
         }
     }
@@ -151,17 +156,17 @@ public partial class Resume : Control
         string education, string[] skills, string picturePath, string workExperience)
     {
         GD.Print($"SetResumeData called with skills: {(skills != null ? string.Join(", ", skills) : "null")}");
-        
+
         CandidateName = candidateName ?? "Unknown Candidate";
         CandidatePosition = position ?? "Unknown Position";
         Gender = gender ?? "Unknown";
         Education = education ?? "Unknown Education";
-        
+
         // Set skills array
         Skills = skills ?? new string[0];
-        
+
         GD.Print($"SetResumeData: Skills set to: {string.Join(", ", Skills)}");
-        
+
         WorkExperience = workExperience ?? "No Experience";
 
         // Load texture safely
@@ -180,6 +185,7 @@ public partial class Resume : Control
         if (_nameLabel != null)
         {
             RefreshUI();
+            GD.Print("Resume: Refreshed UI with new data");
         }
         else
         {
