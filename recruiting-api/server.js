@@ -17,9 +17,13 @@ const PlayerLog = mongoose.model(
 	new mongoose.Schema({
 		player_id: String,
 		candidate_id: String,
-		time_taken: Number,
-		first_tab: String,
+		candidate_gender: String,
+		candidate_position: String,
+		candidate_education: String,
+		candidate_workExperience: String,
+		candidate_skills: [String],
 		tabs_viewed: [String],
+		time_taken: Number,
 		timestamp: { type: Date, default: Date.now },
 	})
 );
