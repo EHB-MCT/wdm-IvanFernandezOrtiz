@@ -14,6 +14,9 @@ public partial class Main : Node
     private Label _TimeLeftLabel;
     private PackedScene _resumeScene;
 
+    private Marker2D PositionA;
+    private Marker2D PositionB;
+
     public override void _Ready()
     {
         // Load candidates from JSON
@@ -23,6 +26,10 @@ public partial class Main : Node
         timer = GetNodeOrNull<Timer>("Timer");
         _MessageLabel = GetNode<Label>("Text");
         _TimeLeftLabel = GetNode<Label>("TimeLeft");
+
+        // Get marker references for positioning
+        PositionA = GetNode<Marker2D>("Option1");
+        PositionB = GetNode<Marker2D>("Option2");
 
         // Load the Resume scene for instantiation
         _resumeScene = GD.Load<PackedScene>("res://scenes/resume.tscn");
@@ -41,7 +48,6 @@ public partial class Main : Node
                 child.QueueFree();
             }
         }
-
         // Get random candidates and create resumes
         var candidates = CandidateLoader.GetAllCandidates();
         if (candidates.Length == 0)
@@ -50,8 +56,8 @@ public partial class Main : Node
             return;
         }
 
-        // Create 2-3 random resumes for the game
-        int resumeCount = Math.Min(3, candidates.Length);
+        // Create exactly 2 random resumes for the game
+        int resumeCount = Math.Min(2, candidates.Length);
         var usedIndices = new System.Collections.Generic.HashSet<int>();
         var random = new Random();
 
@@ -68,6 +74,24 @@ public partial class Main : Node
 
             var resumeInstance = _resumeScene.Instantiate<Resume>();
             AddChild(resumeInstance);
+
+            // Position the resume at the appropriate marker
+            Marker2D targetMarker = (i == 0) ? PositionA : PositionB;
+            if (targetMarker != null)
+            {
+                resumeInstance.Position = targetMarker.Position;
+                GD.Print($"Resume {i + 1} positioned at marker: {targetMarker.Name} at position {targetMarker.Position}");
+            }
+            else
+            {
+                GD.PrintErr($"Marker {(i == 0 ? "Option1" : "Option2")} not found!");
+                // Fallback positioning
+                resumeInstance.Position = new Vector2(i == 0 ? 155 : 672, 155);
+            }
+
+            // Set scale to match the original design
+            resumeInstance.Scale = new Vector2(0.9f, 0.9f);
+
             resumeInstance.SetResumeData(
                 candidate.candidateName,
                 candidate.position,
@@ -81,6 +105,15 @@ public partial class Main : Node
         }
 
         GetNode<Timer>("Timer").Start();
+    }
+
+    /// <summary>
+    /// Refresh the game with 2 new random candidates.
+    /// </summary>
+    public void RefreshCandidates()
+    {
+        GD.Print("Refreshing candidates...");
+        NewGame();
     }
 
 
