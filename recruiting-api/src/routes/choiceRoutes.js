@@ -8,7 +8,7 @@ import {
 	getChoicesWithCandidateDetails,
 	getChoiceAnalytics,
 } from "../controllers/logController.js";
-import { validateChoiceInput, validateBatchChoiceInput, validateIdParam } from "../middleware/validation.js";
+import { validateLogInput, validateBatchChoiceInput, validateIdParam } from "../middleware/validation.js";
 
 const router = Router();
 
@@ -122,7 +122,7 @@ const router = Router();
  *       500:
  *         description: Internal server error
  */
-router.post("/", validateChoiceInput, createChoice);
+router.post("/", validateLogInput, createChoice);
 
 /**
  * @swagger
