@@ -28,6 +28,8 @@ public partial class Resume : Control
     private List<string> viewedTabs = new List<string>();
     private string[] tabs = { "Profile", "Education", "Skills", "Work" };
 
+    const string Unknown = "N/A";
+
     private float timeTaken;
 
     public override void _Ready()
@@ -57,9 +59,9 @@ public partial class Resume : Control
         // Initialize skills display if Skills array is available
         GD.Print($"Resume._Ready: Skills array length = {Skills?.Length ?? 0}");
         GD.Print($"Resume._Ready: Skills content = {(Skills != null ? string.Join(", ", Skills) : "null")}");
-        GD.Print(Skills);
-        GD.Print(_skillsTab);
-        if (Skills != null && _skillsTab != null)
+        GD.Print($"Resume._Ready: _skillsTab is null: {_skillsTab == null}");
+        
+        if (Skills != null && _skillsTab != null && Skills.Length > 0)
         {
             // Clear existing skill labels
             foreach (Node child in _skillsTab.GetChildren())
@@ -78,7 +80,12 @@ public partial class Resume : Control
         }
         else
         {
-            GD.PrintErr("Resume._Ready: Skills is null or _skillsTab is null");
+            if (Skills == null)
+                GD.Print("Resume._Ready: Skills is null - will be populated by SetResumeData");
+            if (_skillsTab == null)
+                GD.PrintErr("Resume._Ready: _skillsTab is null - node path issue");
+            if (Skills != null && Skills.Length == 0)
+                GD.Print("Resume._Ready: Skills array is empty");
         }
 
         // Refresh UI with current data
@@ -106,34 +113,17 @@ public partial class Resume : Control
             _workLabel.Text = WorkExperience;
 
         // Update skills display
-        if (_skillsTab != null && Skills != null)
-        {
-            // Clear existing skill labels
-            foreach (Node child in _skillsTab.GetChildren())
-            {
-                child.QueueFree();
-            }
-
-            // Add new skill labels
-            for (int i = 0; i < Skills.Length; i++)
-            {
-                var skillLabel = new Label();
-                skillLabel.Text = Skills[i];
-                _skillsTab.AddChild(skillLabel);
-                GD.Print($"RefreshUI: Added skill label: {Skills[i]}");
-            }
-        }
+        EnsureSkillsDisplayed();
     }
 
     private void OnChooseButtonPressed()
     {
-        // GD.Print($"Candidate {CandidateName} selected.");
         var data = new Dictionary {
-        {"candidate_id", CandidateName ?? "Unknown" },
-        {"candidate_gender", Gender ?? "Unknown"},
-        {"candidate_position", CandidatePosition ?? "Unknown"},
-        {"candidate_education", Education ?? "Unknown"},
-        {"candidate_workExperience", WorkExperience ?? "Unknown"},
+        {"candidate_id", CandidateName ?? Unknown },
+        {"candidate_gender", Gender ?? Unknown},
+        {"candidate_position", CandidatePosition ?? Unknown},
+        {"candidate_education", Education ?? Unknown},
+        {"candidate_workExperience", WorkExperience ?? Unknown},
         {"candidate_skills", Skills ?? new string[0]},
         {"tabs_viewed", new Array<string>(viewedTabs) },
         {"time_taken", timeTaken}
@@ -147,6 +137,34 @@ public partial class Resume : Control
     {
         viewedTabs.Add(tabs[tabIndex]);
         GD.Print(viewedTabs);
+    }
+
+    /// <summary>
+    /// Ensure skills are properly displayed in the UI
+    /// </summary>
+    private void EnsureSkillsDisplayed()
+    {
+        if (_skillsTab != null && Skills != null && Skills.Length > 0)
+        {
+            // Clear existing skill labels
+            foreach (Node child in _skillsTab.GetChildren())
+            {
+                child.QueueFree();
+            }
+
+            // Add new skill labels
+            for (int i = 0; i < Skills.Length; i++)
+            {
+                var skillLabel = new Label();
+                skillLabel.Text = Skills[i];
+                _skillsTab.AddChild(skillLabel);
+                GD.Print($"EnsureSkillsDisplayed: Added skill label: {Skills[i]}");
+            }
+        }
+        else
+        {
+            GD.Print($"EnsureSkillsDisplayed: Skipped - _skillsTab null: {_skillsTab == null}, Skills null: {Skills == null}, Skills empty: {(Skills != null && Skills.Length == 0)}");
+        }
     }
 
     /// <summary>
@@ -191,5 +209,8 @@ public partial class Resume : Control
         {
             GD.Print("Resume: UI nodes not ready yet, data will be displayed when _Ready() completes");
         }
+        
+        // Ensure skills are displayed regardless of timing
+        EnsureSkillsDisplayed();
     }
 }
