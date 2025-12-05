@@ -7,7 +7,7 @@ const options = {
 		info: {
 			title: "Recruiting API",
 			version: "1.0.0",
-			description: "API for logging and retrieving player interaction data from a recruiting game",
+			description: "API for managing candidates and player choices in a recruiting game",
 			contact: {
 				name: "API Support",
 				email: "support@example.com",
@@ -20,10 +20,6 @@ const options = {
 			},
 		],
 		tags: [
-			{
-				name: "Logs",
-				description: "Player log management",
-			},
 			{
 				name: "Candidates",
 				description: "Candidate management",
@@ -40,64 +36,16 @@ const options = {
 					required: ["player_id", "chosen_candidate_id", "position", "time_taken", "tabs_viewed", "round_number"],
 					properties: {
 						player_id: { type: "string", description: "Unique identifier for the player" },
-							chosen_candidate_id: { type: "string", description: "ID of the chosen candidate" },
-							rejected_candidate_id: { type: "string", description: "ID of the rejected candidate" },
-							position: { type: "string", description: "Position being recruited for" },
-							time_taken: { type: "number", minimum: 0, description: "Time taken to make decision in seconds" },
-							tabs_viewed: {
-								type: "array",
-								items: { type: "string", enum: ["PROFILE", "SKILLS", "WORK", "EDUCATION"] },
-								description: "Tabs the player viewed during the decision"
-							},
-							round_number: { type: "number", description: "Round number in the game" }
-					}
-				},
-						candidate_id: {
-							type: "string",
-							description: "Unique identifier for selected candidate",
-							example: "candidate456"
-						},
-						opponent_candidate_id: {
-							type: "string",
-							description: "Unique identifier for opponent candidate (optional)",
-							example: "candidate789"
-						},
+						chosen_candidate_id: { type: "string", description: "ID of the chosen candidate" },
+						rejected_candidate_id: { type: "string", description: "ID of the rejected candidate" },
+						position: { type: "string", description: "Position being recruited for" },
+						time_taken: { type: "number", minimum: 0, description: "Time taken to make decision in seconds" },
 						tabs_viewed: {
 							type: "array",
-							items: {
-								type: "string",
-								enum: ["PROFILE", "SKILLS", "WORK", "EDUCATION"]
-							},
-							description: "List of tabs the player viewed",
-							example: ["PROFILE", "SKILLS", "WORK"]
+							items: { type: "string", enum: ["PROFILE", "SKILLS", "WORK", "EDUCATION"] },
+							description: "Tabs the player viewed during the decision"
 						},
-						time_taken: {
-							type: "number",
-							minimum: 0,
-							description: "Time taken by the player in seconds (must be non-negative)",
-							example: 45.5
-						},
-						timestamp: {
-							type: "string",
-							format: "date-time",
-							description: "When the log was created (automatically set)",
-							example: "2023-12-05T10:30:00.000Z"
-						},
-						_id: {
-							type: "string",
-							description: "MongoDB document ID",
-							example: "64a1b2c3d4e5f678901234567"
-						},
-						createdAt: {
-							type: "string",
-							format: "date-time",
-							description: "Document creation timestamp"
-						},
-						updatedAt: {
-							type: "string",
-							format: "date-time",
-							description: "Document last update timestamp"
-						}
+						round_number: { type: "number", description: "Round number in the game" }
 					}
 				},
 				Candidate: {
