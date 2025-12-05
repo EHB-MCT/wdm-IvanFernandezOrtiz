@@ -99,20 +99,11 @@ export const getChoicesWithCandidateDetails = asyncHandler(async (req, res) => {
 		},
 	]);
 	
-	const result = analytics[0] || {
-		totalChoices: 0,
-		averageTimeTaken: 0,
-		uniquePlayerCount: 0,
-		uniqueCandidateCount: 0,
-		mostViewedTabs: {},
-		popularPositions: [],
-	};
-	
-	res.json(result);
+	res.json(choices);
 });
 
-export const getChoicesWithCandidateDetails = asyncHandler(async (req, res) => {
-	const choices = await PlayerChoices.aggregate([
+export const getChoiceAnalytics = asyncHandler(async (req, res) => {
+	const analytics = await PlayerChoices.aggregate([
 		{
 			$lookup: {
 				from: "candidates",
@@ -122,41 +113,119 @@ export const getChoicesWithCandidateDetails = asyncHandler(async (req, res) => {
 			},
 		},
 		{
-			$lookup: {
-				from: "candidates",
-				localField: "rejected_candidate_id",
-				foreignField: "candidate_id",
-				as: "rejected_details",
-			},
-		},
-		{
 			$unwind: {
 				path: "$chosen_details",
 				preserveNullAndEmptyArrays: true,
 			},
 		},
 		{
-			$unwind: {
-				path: "$rejected_details",
-				preserveNullAndEmptyArrays: true,
+			$group: {
+				_id: null,
+				totalChoices: { $sum: 1 },
+				averageTimeTaken: { $avg: "$time_taken" },
+				uniquePlayerCount: { $addToSet: "$player_id" },
+				uniqueCandidateCount: { $addToSet: "$chosen_candidate_id" },
+				allTabs: { $push: "$tabs_viewed" },
+				genders: { $push: "$chosen_details.gender" },
+				positions: { $push: "$position" },
 			},
 		},
 		{
-			$sort: { timestamp: -1 },
-		},
+			$project: {
+				totalChoices: 1,
+				averageTimeTaken: { $round: ["$averageTimeTaken", 2] },
+				uniquePlayerCount: { $size: "$uniquePlayerCount" },
+				uniqueCandidateCount: { $size: "$uniqueCandidateCount" },
+				mostViewedTabs: {
+					$reduce: {
+						input: "$allTabs",
+						initialValue: { PROFILE: 0, SKILLS: 0, WORK: 0, EDUCATION: 0 },
+						in: {
+							$mergeObjects: [
+								"$$value",
+								{
+									$arrayToObject: {
+										$map: {
+											input: "$$this",
+											as: "tab",
+											in: {
+												k: "$$tab",
+												v: {
+													$add: [
+														{ $ifNull: [{ $getField: { field: "$$tab", input: "$$value" } }, 0] },
+														1
+													]
+												}
+											}
+										}
+									}
+								}
+							]
+						}
+					}
+				},
+				genderDistribution: {
+					$reduce: {
+						input: "$genders",
+						initialValue: {},
+						in: {
+							$mergeObjects: [
+								"$$value",
+								{
+									$cond: {
+										if: { $ne: ["$$this", null] },
+										then: {
+											$arrayToObject: [[
+												{ k: "$$this", v: { $add: [{ $ifNull: [{ $getField: { field: "$$this", input: "$$value" } }, 0] }, 1] } }
+											]]
+										},
+										else: "$$value"
+									}
+								}
+							]
+						}
+					}
+				},
+				popularPositions: {
+					$reduce: {
+						input: "$positions",
+						initialValue: {},
+						in: {
+							$mergeObjects: [
+								"$$value",
+								{
+									$arrayToObject: [[
+										{ k: "$$this", v: { $add: [{ $ifNull: [{ $getField: { field: "$$this", input: "$$value" } }, 0] }, 1] } }
+									]]
+								}
+							]
+						}
+					}
+				}
+			}
+		}
 	]);
-	
-	res.json(choices);
+
+	const result = analytics[0] || {
+		totalChoices: 0,
+		averageTimeTaken: 0,
+		uniquePlayerCount: 0,
+		uniqueCandidateCount: 0,
+		mostViewedTabs: { PROFILE: 0, SKILLS: 0, WORK: 0, EDUCATION: 0 },
+		genderDistribution: {},
+		popularPositions: {}
+	};
+
+	// Sort positions by count and return top 10
+	const sortedPositions = Object.entries(result.popularPositions)
+		.sort(([,a], [,b]) => b - a)
+		.slice(0, 10)
+		.map(([position, count]) => ({ position, count }));
+
+	res.json({
+		...result,
+		popularPositions: sortedPositions
+	});
 });
 
 
-
-export {
-	createChoice,
-	createBatchChoices,
-	getAllChoices,
-	getChoicesByPlayer,
-	getChoicesByCandidate,
-	getChoicesWithCandidateDetails,
-	getChoiceAnalytics,
-};
