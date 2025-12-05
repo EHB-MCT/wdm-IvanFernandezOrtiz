@@ -14,47 +14,31 @@ const router = Router();
 
 /**
  * @swagger
- * components:
- *   schemas:
- *     Candidate:
- *       type: object
- *       required:
- *         - candidate_id
- *         - gender
- *         - position
- *         - education
- *         - workExperience
- *         - skills
- *       properties:
- *         candidate_id:
- *           type: string
- *           description: Unique identifier for the candidate
- *         gender:
- *           type: string
- *           enum: [male, female, other]
- *           description: Gender of the candidate
- *         position:
- *           type: string
- *           description: Position the candidate is applying for
- *         education:
- *           type: string
- *           description: Education level of the candidate
- *         workExperience:
- *           type: string
- *           description: Work experience of the candidate
- *         skills:
- *           type: array
- *           items:
- *             type: string
- *           description: List of candidate skills
- */
-
-/**
- * @swagger
  * /api/candidates:
  *   get:
  *     summary: Get all candidates
+ *     description: Retrieves all candidates from the database sorted by candidate_id.
  *     tags: [Candidates]
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 1000
+ *           default: 100
+ *         description: Maximum number of candidates to return
+ *       - in: query
+ *         name: position
+ *         schema:
+ *           type: string
+ *         description: Filter candidates by position
+ *       - in: query
+ *         name: gender
+ *         schema:
+ *           type: string
+ *           enum: [male, female, other]
+ *         description: Filter candidates by gender
  *     responses:
  *       200:
  *         description: List of all candidates
@@ -64,6 +48,8 @@ const router = Router();
  *               type: array
  *               items:
  *                 $ref: '#/components/schemas/Candidate'
+ *       500:
+ *         description: Internal server error
  */
 router.get("/", getAllCandidates);
 
@@ -72,6 +58,7 @@ router.get("/", getAllCandidates);
  * /api/candidates:
  *   post:
  *     summary: Create a new candidate
+ *     description: Adds a new candidate to the database with validation for required fields.
  *     tags: [Candidates]
  *     requestBody:
  *       required: true
@@ -79,6 +66,13 @@ router.get("/", getAllCandidates);
  *         application/json:
  *           schema:
  *             $ref: '#/components/schemas/Candidate'
+ *           example:
+ *             candidate_id: "candidate456"
+ *             gender: "female"
+ *             position: "Software Developer"
+ *             education: "Bachelor's in Computer Science"
+ *             workExperience: "5 years in web development"
+ *             skills: ["JavaScript", "React", "Node.js", "MongoDB"]
  *     responses:
  *       201:
  *         description: Candidate created successfully
@@ -86,6 +80,14 @@ router.get("/", getAllCandidates);
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Candidate'
+ *       400:
+ *         description: Bad request - validation failed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
  */
 router.post("/", validateCandidateInput, createCandidate);
 
@@ -94,6 +96,7 @@ router.post("/", validateCandidateInput, createCandidate);
  * /api/candidates/{candidateId}:
  *   get:
  *     summary: Get candidate by ID
+ *     description: Retrieves a specific candidate by their unique identifier.
  *     tags: [Candidates]
  *     parameters:
  *       - in: path
@@ -101,7 +104,8 @@ router.post("/", validateCandidateInput, createCandidate);
  *         required: true
  *         schema:
  *           type: string
- *         description: ID of the candidate
+ *         description: Unique identifier for the candidate
+ *         example: "candidate456"
  *     responses:
  *       200:
  *         description: Candidate details
@@ -111,6 +115,12 @@ router.post("/", validateCandidateInput, createCandidate);
  *               $ref: '#/components/schemas/Candidate'
  *       404:
  *         description: Candidate not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
  */
 router.get("/:candidateId", validateIdParam("candidateId"), getCandidateById);
 
@@ -119,6 +129,7 @@ router.get("/:candidateId", validateIdParam("candidateId"), getCandidateById);
  * /api/candidates/{candidateId}:
  *   put:
  *     summary: Update candidate by ID
+ *     description: Updates an existing candidate's information. All fields are optional but at least one must be provided.
  *     tags: [Candidates]
  *     parameters:
  *       - in: path
@@ -126,13 +137,18 @@ router.get("/:candidateId", validateIdParam("candidateId"), getCandidateById);
  *         required: true
  *         schema:
  *           type: string
- *         description: ID of the candidate
+ *         description: Unique identifier for the candidate
+ *         example: "candidate456"
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             $ref: '#/components/schemas/Candidate'
+ *           example:
+ *             position: "Senior Software Developer"
+ *             workExperience: "7 years in web development"
+ *             skills: ["JavaScript", "React", "Node.js", "MongoDB", "AWS"]
  *     responses:
  *       200:
  *         description: Candidate updated successfully
@@ -140,8 +156,20 @@ router.get("/:candidateId", validateIdParam("candidateId"), getCandidateById);
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Candidate'
+ *       400:
+ *         description: Bad request - validation failed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       404:
  *         description: Candidate not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
  */
 router.put("/:candidateId", validateIdParam("candidateId"), validateCandidateInput, updateCandidate);
 
@@ -150,6 +178,7 @@ router.put("/:candidateId", validateIdParam("candidateId"), validateCandidateInp
  * /api/candidates/{candidateId}:
  *   delete:
  *     summary: Delete candidate by ID
+ *     description: Removes a candidate from the database. This will also remove them from any log references.
  *     tags: [Candidates]
  *     parameters:
  *       - in: path
@@ -157,12 +186,23 @@ router.put("/:candidateId", validateIdParam("candidateId"), validateCandidateInp
  *         required: true
  *         schema:
  *           type: string
- *         description: ID of the candidate
+ *         description: Unique identifier for the candidate
+ *         example: "candidate456"
  *     responses:
  *       200:
  *         description: Candidate deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
  *       404:
  *         description: Candidate not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
  */
 router.delete("/:candidateId", validateIdParam("candidateId"), deleteCandidate);
 
@@ -171,6 +211,7 @@ router.delete("/:candidateId", validateIdParam("candidateId"), deleteCandidate);
  * /api/candidates/position/{position}:
  *   get:
  *     summary: Get candidates by position
+ *     description: Retrieves all candidates applying for a specific position.
  *     tags: [Candidates]
  *     parameters:
  *       - in: path
@@ -179,6 +220,15 @@ router.delete("/:candidateId", validateIdParam("candidateId"), deleteCandidate);
  *         schema:
  *           type: string
  *         description: Position to filter by
+ *         example: "Software Developer"
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 1000
+ *           default: 100
+ *         description: Maximum number of candidates to return
  *     responses:
  *       200:
  *         description: List of candidates for the specified position
@@ -188,6 +238,8 @@ router.delete("/:candidateId", validateIdParam("candidateId"), deleteCandidate);
  *               type: array
  *               items:
  *                 $ref: '#/components/schemas/Candidate'
+ *       500:
+ *         description: Internal server error
  */
 router.get("/position/:position", getCandidatesByPosition);
 
@@ -196,6 +248,7 @@ router.get("/position/:position", getCandidatesByPosition);
  * /api/candidates/gender/{gender}:
  *   get:
  *     summary: Get candidates by gender
+ *     description: Retrieves all candidates of a specific gender.
  *     tags: [Candidates]
  *     parameters:
  *       - in: path
@@ -205,6 +258,15 @@ router.get("/position/:position", getCandidatesByPosition);
  *           type: string
  *           enum: [male, female, other]
  *         description: Gender to filter by
+ *         example: "female"
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 1000
+ *           default: 100
+ *         description: Maximum number of candidates to return
  *     responses:
  *       200:
  *         description: List of candidates for the specified gender
@@ -214,6 +276,14 @@ router.get("/position/:position", getCandidatesByPosition);
  *               type: array
  *               items:
  *                 $ref: '#/components/schemas/Candidate'
+ *       400:
+ *         description: Invalid gender value
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
  */
 router.get("/gender/:gender", getCandidatesByGender);
 

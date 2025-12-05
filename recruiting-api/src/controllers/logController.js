@@ -1,91 +1,96 @@
-import PlayerLog from "../models/PlayerLog.js";
+import PlayerChoices from "../models/PlayerChoices.js";
 import Candidate from "../models/Candidate.js";
 import { asyncHandler } from "../middleware/errorHandler.js";
 
-export const createLog = asyncHandler(async (req, res) => {
-	const log = new PlayerLog(req.body);
-	await log.save();
-	res.status(201).json({ status: "ok", id: log._id });
+export const createChoice = asyncHandler(async (req, res) => {
+	const choice = new PlayerChoices(req.body);
+	await choice.save();
+	res.status(201).json({ status: "ok", id: choice._id });
 });
 
-export const createBatchLogs = asyncHandler(async (req, res) => {
-	const { logs } = req.body;
+export const createBatchChoices = asyncHandler(async (req, res) => {
+	const { choices } = req.body;
 	
-	if (!Array.isArray(logs)) {
+	if (!Array.isArray(choices)) {
 		return res.status(400).json({
 			error: "Invalid request body",
-			message: "logs field must be an array",
+			message: "choices field must be an array",
 		});
 	}
 	
-	if (logs.length === 0) {
+	if (choices.length === 0) {
 		return res.status(400).json({
 			error: "Invalid request body",
-			message: "logs array cannot be empty",
+			message: "choices array cannot be empty",
 		});
 	}
 	
-	const savedLogs = await PlayerLog.insertMany(logs);
+	const savedChoices = await PlayerChoices.insertMany(choices);
 	res.status(201).json({ 
 		status: "ok", 
-		created: savedLogs.length,
-		ids: savedLogs.map(log => log._id)
+		created: savedChoices.length,
+		ids: savedChoices.map(choice => choice._id)
 	});
 });
 
-export const getAllLogs = asyncHandler(async (req, res) => {
-	const logs = await PlayerLog.find()
-		.populate("candidate_id", "candidate_id gender position education workExperience skills")
-		.populate("opponent_candidate_id", "candidate_id gender position education workExperience skills")
+export const getAllChoices = asyncHandler(async (req, res) => {
+	const choices = await PlayerChoices.find()
+		.populate("chosen_candidate_id", "candidate_id gender position education workExperience skills")
+		.populate("rejected_candidate_id", "candidate_id gender position education workExperience skills")
 		.sort({ timestamp: -1 });
-	res.json(logs);
+	res.json(choices);
 });
 
-export const getLogsByPlayer = asyncHandler(async (req, res) => {
+export const getChoicesByPlayer = asyncHandler(async (req, res) => {
 	const { playerId } = req.params;
-	const logs = await PlayerLog.find({ player_id: playerId })
-		.populate("candidate_id", "candidate_id gender position education workExperience skills")
-		.populate("opponent_candidate_id", "candidate_id gender position education workExperience skills")
+	const choices = await PlayerChoices.find({ player_id: playerId })
+		.populate("chosen_candidate_id", "candidate_id gender position education workExperience skills")
+		.populate("rejected_candidate_id", "candidate_id gender position education workExperience skills")
 		.sort({ timestamp: -1 });
-	res.json(logs);
+	res.json(choices);
 });
 
-export const getLogsByCandidate = asyncHandler(async (req, res) => {
+export const getChoicesByCandidate = asyncHandler(async (req, res) => {
 	const { candidateId } = req.params;
-	const logs = await PlayerLog.find({ candidate_id: candidateId })
-		.populate("candidate_id", "candidate_id gender position education workExperience skills")
-		.populate("opponent_candidate_id", "candidate_id gender position education workExperience skills")
+	const choices = await PlayerChoices.find({ 
+		$or: [
+			{ chosen_candidate_id: candidateId },
+			{ rejected_candidate_id: candidateId }
+		]
+	})
+		.populate("chosen_candidate_id", "candidate_id gender position education workExperience skills")
+		.populate("rejected_candidate_id", "candidate_id gender position education workExperience skills")
 		.sort({ timestamp: -1 });
-	res.json(logs);
+	res.json(choices);
 });
 
-export const getLogsWithCandidateDetails = asyncHandler(async (req, res) => {
-	const logs = await PlayerLog.aggregate([
+export const getChoicesWithCandidateDetails = asyncHandler(async (req, res) => {
+	const choices = await PlayerChoices.aggregate([
 		{
 			$lookup: {
 				from: "candidates",
-				localField: "candidate_id",
+				localField: "chosen_candidate_id",
 				foreignField: "candidate_id",
-				as: "candidate_details",
+				as: "chosen_details",
 			},
 		},
 		{
 			$lookup: {
 				from: "candidates",
-				localField: "opponent_candidate_id",
+				localField: "rejected_candidate_id",
 				foreignField: "candidate_id",
-				as: "opponent_details",
+				as: "rejected_details",
 			},
 		},
 		{
 			$unwind: {
-				path: "$candidate_details",
+				path: "$chosen_details",
 				preserveNullAndEmptyArrays: true,
 			},
 		},
 		{
 			$unwind: {
-				path: "$opponent_details",
+				path: "$rejected_details",
 				preserveNullAndEmptyArrays: true,
 			},
 		},
@@ -94,24 +99,25 @@ export const getLogsWithCandidateDetails = asyncHandler(async (req, res) => {
 		},
 	]);
 	
-	res.json(logs);
+	res.json(choices);
 });
 
-export const getAnalytics = asyncHandler(async (req, res) => {
-	const analytics = await PlayerLog.aggregate([
+export const getChoiceAnalytics = asyncHandler(async (req, res) => {
+	const analytics = await PlayerChoices.aggregate([
 		{
 			$group: {
 				_id: null,
-				totalLogs: { $sum: 1 },
+				totalChoices: { $sum: 1 },
 				averageTimeTaken: { $avg: "$time_taken" },
 				uniquePlayers: { $addToSet: "$player_id" },
-				uniqueCandidates: { $addToSet: "$candidate_id" },
+				uniqueCandidates: { $addToSet: "$chosen_candidate_id" },
 				tabViewCounts: { $push: "$tabs_viewed" },
+				positionChoices: { $addToSet: "$position" },
 			},
 		},
 		{
 			$project: {
-				totalLogs: 1,
+				totalChoices: 1,
 				averageTimeTaken: { $round: ["$averageTimeTaken", 2] },
 				uniquePlayerCount: { $size: "$uniquePlayers" },
 				uniqueCandidateCount: { $size: "$uniqueCandidates" },
@@ -124,28 +130,38 @@ export const getAnalytics = asyncHandler(async (req, res) => {
 								"$$value",
 								{
 									$arrayToObject: {
-										$map: {
-											input: "$$this",
-											as: "tab",
-											in: { k: "$$tab", v: { $add: [{ $ifNull: [{ $getField: { field: "$$tab", input: "$$value" } }, 0] }, 1] } },
-										},
+										input: "$$this",
 									},
 								},
 							],
 						},
 					},
 				},
+				popularPositions: {
+					$size: "$positionChoices"
+				},
 			},
 		},
 	]);
 	
 	const result = analytics[0] || {
-		totalLogs: 0,
+		totalChoices: 0,
 		averageTimeTaken: 0,
 		uniquePlayerCount: 0,
 		uniqueCandidateCount: 0,
 		mostViewedTabs: {},
+		popularPositions: [],
 	};
 	
 	res.json(result);
 });
+
+export {
+	createChoice,
+	createBatchChoices,
+	getAllChoices,
+	getChoicesByPlayer,
+	getChoicesByCandidate,
+	getChoicesWithCandidateDetails,
+	getChoiceAnalytics,
+};

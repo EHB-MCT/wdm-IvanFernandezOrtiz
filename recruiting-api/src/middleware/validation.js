@@ -50,51 +50,61 @@ export const validateLogInput = (req, res, next) => {
 	next();
 };
 
-export const validateBatchLogInput = (req, res, next) => {
-	const { logs } = req.body;
+export const validateBatchChoiceInput = (req, res, next) => {
+	const { choices } = req.body;
 	const errors = [];
 
-	if (!logs || !Array.isArray(logs)) {
-		errors.push("logs field is required and must be an array");
-	} else if (logs.length === 0) {
-		errors.push("logs array cannot be empty");
-	} else if (logs.length > 100) {
-		errors.push("Cannot process more than 100 logs in a single batch");
+	if (!choices || !Array.isArray(choices)) {
+		errors.push("choices field is required and must be an array");
+	} else if (choices.length === 0) {
+		errors.push("choices array cannot be empty");
+	} else if (choices.length > 100) {
+		errors.push("Cannot process more than 100 choices in a single batch");
 	} else {
-		logs.forEach((log, index) => {
-			const logErrors = [];
+		choices.forEach((choice, index) => {
+			const choiceErrors = [];
 			
-			if (!log.player_id || typeof log.player_id !== "string") {
-				logErrors.push("player_id is required and must be a string");
+			if (!choice.player_id || typeof choice.player_id !== "string") {
+				choiceErrors.push("player_id is required and must be a string");
 			}
 
-			if (!log.candidate_id || typeof log.candidate_id !== "string") {
-				logErrors.push("candidate_id is required and must be a string");
+			if (!choice.chosen_candidate_id || typeof choice.chosen_candidate_id !== "string") {
+				choiceErrors.push("chosen_candidate_id is required and must be a string");
 			}
 
-			if (log.opponent_candidate_id && typeof log.opponent_candidate_id !== "string") {
-				logErrors.push("opponent_candidate_id must be a string if provided");
+			if (choice.rejected_candidate_id && typeof choice.rejected_candidate_id !== "string") {
+				choiceErrors.push("rejected_candidate_id must be a string if provided");
 			}
 
-			if (!log.tabs_viewed || !Array.isArray(log.tabs_viewed)) {
-				logErrors.push("tabs_viewed is required and must be an array");
+			if (!choice.position || typeof choice.position !== "string") {
+				choiceErrors.push("position is required and must be a string");
+			}
+
+			if (!choice.tabs_viewed || !Array.isArray(choice.tabs_viewed)) {
+				choiceErrors.push("tabs_viewed is required and must be an array");
 			} else {
-				const invalidTabs = log.tabs_viewed.filter(tab => !TAB_TYPES.includes(tab));
+				const invalidTabs = choice.tabs_viewed.filter(tab => !TAB_TYPES.includes(tab));
 				if (invalidTabs.length > 0) {
-					logErrors.push(`Invalid tabs_viewed values: ${invalidTabs.join(", ")}. Must be one of: ${TAB_TYPES.join(", ")}`);
+					choiceErrors.push(`Invalid tabs_viewed values: ${invalidTabs.join(", ")}. Must be one of: ${TAB_TYPES.join(", ")}`);
 				}
 			}
 
-			if (log.time_taken === undefined || typeof log.time_taken !== "number") {
-				logErrors.push("time_taken is required and must be a number");
-			} else if (!Number.isFinite(log.time_taken)) {
-				logErrors.push("time_taken must be a valid finite number");
-			} else if (log.time_taken < 0) {
-				logErrors.push("time_taken cannot be negative");
+			if (choice.time_taken === undefined || typeof choice.time_taken !== "number") {
+				choiceErrors.push("time_taken is required and must be a number");
+			} else if (!Number.isFinite(choice.time_taken)) {
+				choiceErrors.push("time_taken must be a valid finite number");
+			} else if (choice.time_taken < 0) {
+				choiceErrors.push("time_taken cannot be negative");
 			}
 
-			if (logErrors.length > 0) {
-				errors.push(`Log at index ${index}: ${logErrors.join(", ")}`);
+			if (choice.round_number === undefined || typeof choice.round_number !== "number") {
+				choiceErrors.push("round_number is required and must be a number");
+			} else if (!Number.isInteger(choice.round_number) || choice.round_number < 1) {
+				choiceErrors.push("round_number must be a positive integer");
+			}
+
+			if (choiceErrors.length > 0) {
+				errors.push(`Choice at index ${index}: ${choiceErrors.join(", ")}`);
 			}
 		});
 	}

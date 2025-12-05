@@ -5,6 +5,7 @@ import { swaggerUi, specs } from "./src/config/swagger.js";
 import { errorHandler, notFoundHandler } from "./src/middleware/errorHandler.js";
 import logRoutes from "./src/routes/logRoutes.js";
 import candidateRoutes from "./src/routes/candidateRoutes.js";
+import choiceRoutes from "./src/routes/choiceRoutes.js";
 
 const app = express();
 
@@ -23,6 +24,7 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
 // API routes
 app.use("/api/log", logRoutes);
 app.use("/api/candidates", candidateRoutes);
+app.use("/api/choices", choiceRoutes);
 
 // 404 handler
 app.use(notFoundHandler);

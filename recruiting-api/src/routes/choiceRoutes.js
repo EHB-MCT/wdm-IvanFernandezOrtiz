@@ -1,39 +1,106 @@
 import { Router } from "express";
 import {
-	createLog,
-	createBatchLogs,
-	getAllLogs,
-	getLogsByPlayer,
-	getLogsByCandidate,
-	getLogsWithCandidateDetails,
-	getAnalytics,
+	createChoice,
+	createBatchChoices,
+	getAllChoices,
+	getChoicesByPlayer,
+	getChoicesByCandidate,
+	getChoicesWithCandidateDetails,
+	getChoiceAnalytics,
 } from "../controllers/logController.js";
-import { validateLogInput, validateBatchLogInput, validateIdParam } from "../middleware/validation.js";
+import { validateChoiceInput, validateBatchChoiceInput, validateIdParam } from "../middleware/validation.js";
 
 const router = Router();
 
 /**
  * @swagger
- * /api/log:
+ * components:
+ *   schemas:
+ *     PlayerChoice:
+ *       type: object
+ *       required:
+ *         - player_id
+ *         - chosen_candidate_id
+ *         - position
+ *         - time_taken
+ *         - tabs_viewed
+ *         - round_number
+ *       properties:
+ *         player_id:
+ *           type: string
+ *           description: Unique identifier for the player
+ *           example: "player123"
+ *         chosen_candidate_id:
+ *           type: string
+ *           description: ID of the chosen candidate
+ *           example: "candidate456"
+ *         rejected_candidate_id:
+ *           type: string
+ *           description: ID of the rejected candidate
+ *           example: "candidate789"
+ *         position:
+ *           type: string
+ *           description: Position being recruited for
+ *           example: "Software Developer"
+ *         time_taken:
+ *           type: number
+ *           minimum: 0
+ *           description: Time taken to make decision in seconds
+ *           example: 45.5
+ *         tabs_viewed:
+ *           type: array
+ *           items:
+ *             type: string
+ *             enum: [PROFILE, SKILLS, WORK, EDUCATION]
+ *           description: Tabs the player viewed during decision
+ *           example: ["PROFILE", "SKILLS", "WORK"]
+ *         round_number:
+ *           type: number
+ *           description: Round number in the game
+ *           example: 3
+ *         timestamp:
+ *           type: string
+ *           format: date-time
+ *           description: When the choice was made
+ *           example: "2023-12-05T10:30:00.000Z"
+ *         _id:
+ *           type: string
+ *           description: MongoDB document ID
+ *           example: "64a1b2c3d4e5f678901234567"
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *           description: Document creation timestamp
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ *           description: Document last update timestamp
+ */
+
+/**
+ * @swagger
+ * /api/choices:
  *   post:
- *     summary: Create a new player log entry
- *     description: Records a player's interaction with a candidate, including tabs viewed and time taken. Validates that the candidate exists before creating the log.
- *     tags: [Logs]
+ *     summary: Create a new player choice
+ *     description: Records a player's choice between two candidates, including position, time taken, and tabs viewed.
+ *     tags: [Choices]
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/PlayerLog'
+ *             $ref: '#/components/schemas/PlayerChoice'
  *           example:
  *             player_id: "player123"
- *             candidate_id: "candidate456"
- *             opponent_candidate_id: "candidate789"
- *             tabs_viewed: ["PROFILE", "SKILLS", "WORK"]
+ *             chosen_candidate_id: "candidate456"
+ *             rejected_candidate_id: "candidate789"
+ *             position: "Software Developer"
  *             time_taken: 45.5
+ *             tabs_viewed: ["PROFILE", "SKILLS", "WORK"]
+ *             round_number: 3
  *     responses:
  *       201:
- *         description: Log created successfully
+ *         description: Choice created successfully
  *         content:
  *           application/json:
  *             schema:
@@ -44,7 +111,7 @@ const router = Router();
  *                   example: ok
  *                 id:
  *                   type: string
- *                   description: The ID of the created log
+ *                   description: The ID of the created choice
  *                   example: "64a1b2c3d4e5f678901234567"
  *       400:
  *         description: Bad request - validation failed or candidate not found
@@ -55,15 +122,15 @@ const router = Router();
  *       500:
  *         description: Internal server error
  */
-router.post("/", validateLogInput, createLog);
+router.post("/", validateChoiceInput, createChoice);
 
 /**
  * @swagger
- * /api/log:
+ * /api/choices:
  *   get:
- *     summary: Get all player logs
- *     description: Retrieves all player interaction logs with populated candidate details. Results are sorted by timestamp (newest first).
- *     tags: [Logs]
+ *     summary: Get all player choices
+ *     description: Retrieves all player choices with populated candidate details. Results are sorted by timestamp (newest first).
+ *     tags: [Choices]
  *     parameters:
  *       - in: query
  *         name: limit
@@ -72,42 +139,42 @@ router.post("/", validateLogInput, createLog);
  *           minimum: 1
  *           maximum: 1000
  *           default: 100
- *         description: Maximum number of logs to return
+ *         description: Maximum number of choices to return
  *       - in: query
  *         name: offset
  *         schema:
  *           type: integer
  *           minimum: 0
  *           default: 0
- *         description: Number of logs to skip for pagination
+ *         description: Number of choices to skip for pagination
  *     responses:
  *       200:
- *         description: List of all logs with candidate details
+ *         description: List of all choices with candidate details
  *         content:
  *           application/json:
  *             schema:
  *               type: array
  *               items:
  *                 allOf:
- *                   - $ref: '#/components/schemas/PlayerLog'
+ *                   - $ref: '#/components/schemas/PlayerChoice'
  *                   - type: object
  *                     properties:
- *                       candidate_details:
+ *                       chosen_details:
  *                         $ref: '#/components/schemas/Candidate'
- *                       opponent_details:
+ *                       rejected_details:
  *                         $ref: '#/components/schemas/Candidate'
  *       500:
  *         description: Internal server error
  */
-router.get("/", getAllLogs);
+router.get("/", getAllChoices);
 
 /**
  * @swagger
- * /api/log/player/{playerId}:
+ * /api/choices/player/{playerId}:
  *   get:
- *     summary: Get logs by player ID
- *     description: Retrieves all interaction logs for a specific player with populated candidate details.
- *     tags: [Logs]
+ *     summary: Get choices by player ID
+ *     description: Retrieves all choices for a specific player with populated candidate details.
+ *     tags: [Choices]
  *     parameters:
  *       - in: path
  *         name: playerId
@@ -123,22 +190,22 @@ router.get("/", getAllLogs);
  *           minimum: 1
  *           maximum: 1000
  *           default: 100
- *         description: Maximum number of logs to return
+ *         description: Maximum number of choices to return
  *     responses:
  *       200:
- *         description: List of logs for the specified player with candidate details
+ *         description: List of choices for the specified player with candidate details
  *         content:
  *           application/json:
  *             schema:
  *               type: array
  *               items:
  *                 allOf:
- *                   - $ref: '#/components/schemas/PlayerLog'
+ *                   - $ref: '#/components/schemas/PlayerChoice'
  *                   - type: object
  *                     properties:
- *                       candidate_details:
+ *                       chosen_details:
  *                         $ref: '#/components/schemas/Candidate'
- *                       opponent_details:
+ *                       rejected_details:
  *                         $ref: '#/components/schemas/Candidate'
  *       400:
  *         description: Invalid player ID format
@@ -149,15 +216,15 @@ router.get("/", getAllLogs);
  *       500:
  *         description: Internal server error
  */
-router.get("/player/:playerId", validateIdParam("playerId"), getLogsByPlayer);
+router.get("/player/:playerId", validateIdParam("playerId"), getChoicesByPlayer);
 
 /**
  * @swagger
- * /api/log/candidate/{candidateId}:
+ * /api/choices/candidate/{candidateId}:
  *   get:
- *     summary: Get logs by candidate ID
- *     description: Retrieves all interaction logs where the specified candidate was selected by players.
- *     tags: [Logs]
+ *     summary: Get choices by candidate ID
+ *     description: Retrieves all choices where the specified candidate was either chosen or rejected.
+ *     tags: [Choices]
  *     parameters:
  *       - in: path
  *         name: candidateId
@@ -173,22 +240,22 @@ router.get("/player/:playerId", validateIdParam("playerId"), getLogsByPlayer);
  *           minimum: 1
  *           maximum: 1000
  *           default: 100
- *         description: Maximum number of logs to return
+ *         description: Maximum number of choices to return
  *     responses:
  *       200:
- *         description: List of logs for the specified candidate with opponent details
+ *         description: List of choices for the specified candidate with opponent details
  *         content:
  *           application/json:
  *             schema:
  *               type: array
  *               items:
  *                 allOf:
- *                   - $ref: '#/components/schemas/PlayerLog'
+ *                   - $ref: '#/components/schemas/PlayerChoice'
  *                   - type: object
  *                     properties:
- *                       candidate_details:
+ *                       chosen_details:
  *                         $ref: '#/components/schemas/Candidate'
- *                       opponent_details:
+ *                       rejected_details:
  *                         $ref: '#/components/schemas/Candidate'
  *       400:
  *         description: Invalid candidate ID format
@@ -199,15 +266,15 @@ router.get("/player/:playerId", validateIdParam("playerId"), getLogsByPlayer);
  *       500:
  *         description: Internal server error
  */
-router.get("/candidate/:candidateId", validateIdParam("candidateId"), getLogsByCandidate);
+router.get("/candidate/:candidateId", validateIdParam("candidateId"), getChoicesByCandidate);
 
 /**
  * @swagger
- * /api/log/batch:
+ * /api/choices/batch:
  *   post:
- *     summary: Create multiple log entries at once
- *     description: Efficiently creates multiple player interaction logs in a single request. Maximum 100 logs per batch. Each log is validated individually.
- *     tags: [Logs]
+ *     summary: Create multiple choice entries at once
+ *     description: Efficiently creates multiple player choices in a single request. Maximum 100 choices per batch.
+ *     tags: [Choices]
  *     requestBody:
  *       required: true
  *       content:
@@ -215,30 +282,34 @@ router.get("/candidate/:candidateId", validateIdParam("candidateId"), getLogsByC
  *           schema:
  *             type: object
  *             required:
- *               - logs
+ *               - choices
  *             properties:
- *               logs:
+ *               choices:
  *                 type: array
  *                 minItems: 1
  *                 maxItems: 100
  *                 items:
- *                   $ref: '#/components/schemas/PlayerLog'
- *                 description: Array of log entries to create
+ *                   $ref: '#/components/schemas/PlayerChoice'
+ *                 description: Array of choice entries to create
  *           example:
- *             logs:
+ *             choices:
  *               - player_id: "player123"
- *                 candidate_id: "candidate456"
- *                 opponent_candidate_id: "candidate789"
- *                 tabs_viewed: ["PROFILE", "SKILLS"]
+ *                 chosen_candidate_id: "candidate456"
+ *                 rejected_candidate_id: "candidate789"
+ *                 position: "Software Developer"
  *                 time_taken: 30.5
+ *                 tabs_viewed: ["PROFILE", "SKILLS"]
+ *                 round_number: 3
  *               - player_id: "player123"
- *                 candidate_id: "candidate789"
- *                 opponent_candidate_id: "candidate456"
- *                 tabs_viewed: ["PROFILE", "WORK", "EDUCATION"]
+ *                 chosen_candidate_id: "candidate789"
+ *                 rejected_candidate_id: "candidate456"
+ *                 position: "Software Developer"
  *                 time_taken: 45.2
+ *                 tabs_viewed: ["PROFILE", "WORK", "EDUCATION"]
+ *                 round_number: 4
  *     responses:
  *       201:
- *         description: Logs created successfully
+ *         description: Choices created successfully
  *         content:
  *           application/json:
  *             schema:
@@ -249,13 +320,13 @@ router.get("/candidate/:candidateId", validateIdParam("candidateId"), getLogsByC
  *                   example: ok
  *                 created:
  *                   type: number
- *                   description: Number of logs created
+ *                   description: Number of choices created
  *                   example: 2
  *                 ids:
  *                   type: array
  *                   items:
  *                     type: string
- *                   description: Array of created log IDs in order
+ *                   description: Array of created choice IDs in order
  *                   example: ["64a1b2c3d4e5f678901234567", "64a1b2c3d4e5f678901234568"]
  *       400:
  *         description: Bad request - validation failed or batch too large
@@ -266,15 +337,15 @@ router.get("/candidate/:candidateId", validateIdParam("candidateId"), getLogsByC
  *       500:
  *         description: Internal server error
  */
-router.post("/batch", validateBatchLogInput, createBatchLogs);
+router.post("/batch", validateBatchChoiceInput, createBatchChoices);
 
 /**
  * @swagger
- * /api/log/analytics:
+ * /api/choices/analytics:
  *   get:
- *     summary: Get analytics data from logs
- *     description: Provides aggregated analytics including total logs, average time, unique users/candidates, and most viewed tabs.
- *     tags: [Logs]
+ *     summary: Get choice analytics data
+ *     description: Provides aggregated analytics including total choices, average time, unique users/candidates, most viewed tabs, and popular positions.
+ *     tags: [Choices]
  *     responses:
  *       200:
  *         description: Analytics data successfully calculated
@@ -283,25 +354,25 @@ router.post("/batch", validateBatchLogInput, createBatchLogs);
  *             schema:
  *               type: object
  *               properties:
- *                 totalLogs:
+ *                 totalChoices:
  *                   type: number
- *                   description: Total number of logs in the system
+ *                   description: Total number of choices in the system
  *                   example: 1250
  *                 averageTimeTaken:
  *                   type: number
- *                   description: Average time taken across all logs (rounded to 2 decimal places)
+ *                   description: Average time taken across all choices (rounded to 2 decimal places)
  *                   example: 42.75
  *                 uniquePlayerCount:
  *                   type: number
- *                   description: Number of unique players who have made selections
+ *                   description: Number of unique players who have made choices
  *                   example: 85
  *                 uniqueCandidateCount:
  *                   type: number
- *                   description: Number of unique candidates that have been selected
+ *                   description: Number of unique candidates that have been involved in choices
  *                   example: 45
  *                 mostViewedTabs:
  *                   type: object
- *                   description: Count of each tab type viewed across all logs
+ *                   description: Count of each tab type viewed across all choices
  *                   properties:
  *                     PROFILE:
  *                       type: number
@@ -317,18 +388,24 @@ router.post("/batch", validateBatchLogInput, createBatchLogs);
  *                       example: 480
  *                   additionalProperties:
  *                     type: number
+ *                 popularPositions:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                   description: Most popular positions for recruitment
+ *                   example: ["Software Developer", "Data Analyst", "Product Manager"]
  *       500:
  *         description: Internal server error during analytics calculation
  */
-router.get("/analytics", getAnalytics);
+router.get("/analytics", getChoiceAnalytics);
 
 /**
  * @swagger
- * /api/log/details:
+ * /api/choices/details:
  *   get:
- *     summary: Get all logs with full candidate details
- *     description: Returns all logs with complete candidate information using MongoDB aggregation. Includes both selected and opponent candidate details when available.
- *     tags: [Logs]
+ *     summary: Get all choices with full candidate details
+ *     description: Returns all choices with complete candidate information using MongoDB aggregation. Includes both chosen and rejected candidate details.
+ *     tags: [Choices]
  *     parameters:
  *       - in: query
  *         name: limit
@@ -337,20 +414,20 @@ router.get("/analytics", getAnalytics);
  *           minimum: 1
  *           maximum: 1000
  *           default: 100
- *         description: Maximum number of logs to return
+ *         description: Maximum number of choices to return
  *       - in: query
  *         name: playerId
  *         schema:
  *           type: string
- *         description: Filter logs by a specific player ID
+ *         description: Filter choices by a specific player ID
  *       - in: query
  *         name: candidateId
  *         schema:
  *           type: string
- *         description: Filter logs by a specific candidate ID
+ *         description: Filter choices by a specific candidate ID
  *     responses:
  *       200:
- *         description: List of logs with complete candidate details
+ *         description: List of choices with complete candidate details
  *         content:
  *           application/json:
  *             schema:
@@ -360,42 +437,50 @@ router.get("/analytics", getAnalytics);
  *                 properties:
  *                   _id:
  *                     type: string
- *                     description: Log entry ID
+ *                     description: Choice entry ID
  *                     example: "64a1b2c3d4e5f678901234567"
  *                   player_id:
  *                     type: string
  *                     description: Player identifier
  *                     example: "player123"
- *                   candidate_id:
+ *                   chosen_candidate_id:
  *                     type: string
- *                     description: Selected candidate ID
+ *                     description: Chosen candidate ID
  *                     example: "candidate456"
- *                   opponent_candidate_id:
+ *                   rejected_candidate_id:
  *                     type: string
- *                     description: Opponent candidate ID (may be null)
+ *                     description: Rejected candidate ID
  *                     example: "candidate789"
+ *                   position:
+ *                     type: string
+ *                     description: Position being recruited for
+ *                     example: "Software Developer"
+ *                   time_taken:
+ *                     type: number
+ *                     description: Time taken in seconds
+ *                     example: 45.5
  *                   tabs_viewed:
  *                     type: array
  *                     items:
  *                       type: string
  *                       enum: [PROFILE, SKILLS, WORK, EDUCATION]
- *                     description: Tabs viewed by the player
+ *                     description: Tabs viewed by player
  *                     example: ["PROFILE", "SKILLS", "WORK"]
- *                   time_taken:
+ *                   round_number:
  *                     type: number
- *                     description: Time taken in seconds
- *                     example: 45.5
+ *                     description: Round number in the game
+ *                     example: 3
  *                   timestamp:
  *                     type: string
  *                     format: date-time
- *                     description: When the log was created
+ *                     description: When the choice was made
  *                     example: "2023-12-05T10:30:00.000Z"
- *                   candidate_details:
+ *                   chosen_details:
  *                     $ref: '#/components/schemas/Candidate'
- *                     description: Full details of the selected candidate
- *                   opponent_details:
+ *                     description: Full details of chosen candidate
+ *                   rejected_details:
  *                     $ref: '#/components/schemas/Candidate'
- *                     description: Full details of the opponent candidate (null if not provided)
+ *                     description: Full details of rejected candidate
  *       400:
  *         description: Invalid query parameters
  *         content:
@@ -405,6 +490,6 @@ router.get("/analytics", getAnalytics);
  *       500:
  *         description: Internal server error during aggregation
  */
-router.get("/details", getLogsWithCandidateDetails);
+router.get("/details", getChoicesWithCandidateDetails);
 
 export default router;
