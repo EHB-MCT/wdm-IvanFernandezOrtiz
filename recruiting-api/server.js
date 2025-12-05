@@ -1,11 +1,14 @@
 import express from "express";
 import cors from "cors";
+import dotenv from "dotenv";
 import { connectDatabase } from "./src/config/database.js";
 import { swaggerUi, specs } from "./src/config/swagger.js";
 import { errorHandler, notFoundHandler } from "./src/middleware/errorHandler.js";
-import logRoutes from "./src/routes/logRoutes.js";
 import candidateRoutes from "./src/routes/candidateRoutes.js";
 import choiceRoutes from "./src/routes/choiceRoutes.js";
+
+// Load environment variables
+dotenv.config();
 
 const app = express();
 
@@ -22,7 +25,6 @@ app.get("/", (req, res) => {
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
 
 // API routes
-app.use("/api/log", logRoutes);
 app.use("/api/candidates", candidateRoutes);
 app.use("/api/choices", choiceRoutes);
 
