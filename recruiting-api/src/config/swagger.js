@@ -24,6 +24,10 @@ const options = {
 				name: "Logs",
 				description: "Player log management",
 			},
+			{
+				name: "Candidates",
+				description: "Candidate management",
+			},
 		],
 	},
 	apis: ["./src/routes/*.js"],
