@@ -1,4 +1,4 @@
-const TAB_TYPES = ["CV", "LINKEDIN", "PORTFOLIO", "SKILLS", "EXPERIENCE", "EDUCATION"];
+const TAB_TYPES = ["PROFILE", "SKILLS", "WORK", "EDUCATION"];
 
 export const validateLogInput = (req, res, next) => {
 	const {
