@@ -1,0 +1,92 @@
+[
+  {
+    "candidateName": "Jane Doe",
+    "position": "Graphic Designer",
+    "gender": "Female",
+    "education": "UX Design Institute",
+    "skills": ["Illustrator", "Canva"],
+    "picturePath": "res://assets/icon.svg",
+    "workExperience": "JSP Group International BV"
+  },
+  {
+    "candidateName": "John Smith",
+    "position": "Software Developer",
+    "gender": "Male",
+    "education": "MIT Computer Science",
+    "skills": ["JavaScript", "Python", "React", "Node.js"],
+    "picturePath": "res://assets/icon2.svg",
+    "workExperience": "Tech Innovations Inc."
+  },
+  {
+    "candidateName": "Emily Chen",
+    "position": "Data Analyst",
+    "gender": "Female",
+    "education": "Stanford University",
+    "skills": ["SQL", "Python", "Tableau", "Excel"],
+    "picturePath": "res://assets/icon.svg",
+    "workExperience": "DataDriven Solutions"
+  },
+  {
+    "candidateName": "Michael Johnson",
+    "position": "Project Manager",
+    "gender": "Male",
+    "education": "Harvard Business School",
+    "skills": ["Agile", "Scrum", "Leadership", "Communication"],
+    "picturePath": "res://assets/icon2.svg",
+    "workExperience": "Global Consulting Group"
+  },
+  {
+    "candidateName": "Sarah Williams",
+    "position": "UX Designer",
+    "gender": "Female",
+    "education": "California Institute of Arts",
+    "skills": ["Figma", "Sketch", "Adobe XD", "Prototyping"],
+    "picturePath": "res://assets/icon.svg",
+    "workExperience": "Creative Digital Agency"
+  },
+  {
+    "candidateName": "Robert Brown",
+    "position": "DevOps Engineer",
+    "gender": "Male",
+    "education": "Carnegie Mellon University",
+    "skills": ["Docker", "Kubernetes", "AWS", "CI/CD"],
+    "picturePath": "res://assets/icon2.svg",
+    "workExperience": "CloudTech Systems"
+  },
+  {
+    "candidateName": "Lisa Anderson",
+    "position": "Marketing Specialist",
+    "gender": "Female",
+    "education": "Northwestern University",
+    "skills": ["SEO", "Content Marketing", "Social Media", "Analytics"],
+    "picturePath": "res://assets/icon.svg",
+    "workExperience": "Digital Marketing Pro"
+  },
+  {
+    "candidateName": "David Martinez",
+    "position": "Backend Developer",
+    "gender": "Male",
+    "education": "University of Texas",
+    "skills": ["Java", "Spring Boot", "MongoDB", "REST APIs"],
+    "picturePath": "res://assets/icon2.svg",
+    "workExperience": "Enterprise Software Co."
+  },
+  {
+    "candidateName": "Jennifer Taylor",
+    "position": "Product Designer",
+    "gender": "Female",
+    "education": "Rhode Island School of Design",
+    "skills": ["UI Design", "User Research", "Wireframing", "Design Systems"],
+    "picturePath": "res://assets/icon.svg",
+    "workExperience": "Innovation Labs"
+  },
+  {
+    "candidateName": "James Wilson",
+    "position": "Full Stack Developer",
+    "gender": "Male",
+    "education": "University of Washington",
+    "skills": ["React", "Node.js", "TypeScript", "PostgreSQL"],
+    "picturePath": "res://assets/icon2.svg",
+    "workExperience": "Startup Ventures LLC"
+  }
+]

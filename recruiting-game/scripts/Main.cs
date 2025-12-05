@@ -12,21 +12,113 @@ public partial class Main : Node
     private Label _MessageLabel;
     private Timer timer;
     private Label _TimeLeftLabel;
+    private PackedScene _resumeScene;
 
-    public void NewGame()
-    {
-        GetNode<Timer>("StartTimer").Start();
-    }
-
-    private static readonly System.Net.Http.HttpClient client = new System.Net.Http.HttpClient();
+    private Marker2D PositionA;
+    private Marker2D PositionB;
 
     public override void _Ready()
     {
+        // Load candidates from JSON
+        CandidateLoader.LoadCandidates();
+
         // Cache common nodes if they exist in the scene
         timer = GetNodeOrNull<Timer>("Timer");
         _MessageLabel = GetNode<Label>("Text");
         _TimeLeftLabel = GetNode<Label>("TimeLeft");
+
+        // Get marker references for positioning
+        PositionA = GetNode<Marker2D>("Option1");
+        PositionB = GetNode<Marker2D>("Option2");
+
+        // Load the Resume scene for instantiation
+        _resumeScene = GD.Load<PackedScene>("res://scenes/resume.tscn");
+
+        // Start the game
+        NewGame();
     }
+
+    private void NewGame()
+    {
+        // Clear existing resumes
+        foreach (Node child in GetChildren())
+        {
+            if (child is Resume)
+            {
+                child.QueueFree();
+            }
+        }
+        // Get random candidates and create resumes
+        var candidates = CandidateLoader.GetAllCandidates();
+        if (candidates.Length == 0)
+        {
+            GD.PrintErr("No candidates loaded!");
+            return;
+        }
+
+        // Create exactly 2 random resumes for the game
+        int resumeCount = Math.Min(2, candidates.Length);
+        var usedIndices = new System.Collections.Generic.HashSet<int>();
+        var random = new Random();
+
+        for (int i = 0; i < resumeCount; i++)
+        {
+            int randomIndex;
+            do
+            {
+                randomIndex = random.Next(candidates.Length);
+            } while (usedIndices.Contains(randomIndex));
+
+            usedIndices.Add(randomIndex);
+            var candidate = candidates[randomIndex];
+
+            var resumeInstance = _resumeScene.Instantiate<Resume>();
+            AddChild(resumeInstance);
+
+            // Position the resume at the appropriate marker
+            Marker2D targetMarker = (i == 0) ? PositionA : PositionB;
+            if (targetMarker != null)
+            {
+                resumeInstance.Position = targetMarker.Position;
+                GD.Print($"Resume {i + 1} positioned at marker: {targetMarker.Name} at position {targetMarker.Position}");
+            }
+            else
+            {
+                GD.PrintErr($"Marker {(i == 0 ? "Option1" : "Option2")} not found!");
+                // Fallback positioning
+                resumeInstance.Position = new Vector2(i == 0 ? 155 : 672, 155);
+            }
+
+            // Set scale to match the original design
+            resumeInstance.Scale = new Vector2(0.9f, 0.9f);
+
+            resumeInstance.SetResumeData(
+                candidate.candidateName,
+                candidate.position,
+                candidate.gender,
+                candidate.education,
+                candidate.skills,
+                candidate.picturePath,
+                candidate.workExperience
+            );
+            resumeInstance.ResumeChosen += OnResumeChosen;
+        }
+
+        GetNode<Timer>("Timer").Start();
+    }
+
+    /// <summary>
+    /// Refresh the game with 2 new random candidates.
+    /// </summary>
+    public void RefreshCandidates()
+    {
+        GD.Print("Refreshing candidates...");
+        NewGame();
+    }
+
+
+
+    private static readonly System.Net.Http.HttpClient client = new System.Net.Http.HttpClient();
 
     public override void _Process(double delta)
     {
@@ -42,7 +134,7 @@ public partial class Main : Node
     private async void OnResumeChosen(Godot.Collections.Dictionary data)
     {
 
-            GD.Print("Main received chosen candidate");
+        GD.Print("Main received chosen candidate");
 
         // Ensure we have a timer reference
         if (timer == null)
