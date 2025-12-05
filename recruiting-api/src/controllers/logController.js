@@ -99,6 +99,53 @@ export const getChoicesWithCandidateDetails = asyncHandler(async (req, res) => {
 		},
 	]);
 	
+	const result = analytics[0] || {
+		totalChoices: 0,
+		averageTimeTaken: 0,
+		uniquePlayerCount: 0,
+		uniqueCandidateCount: 0,
+		mostViewedTabs: {},
+		popularPositions: [],
+	};
+	
+	res.json(result);
+});
+
+export const getChoicesWithCandidateDetails = asyncHandler(async (req, res) => {
+	const choices = await PlayerChoices.aggregate([
+		{
+			$lookup: {
+				from: "candidates",
+				localField: "chosen_candidate_id",
+				foreignField: "candidate_id",
+				as: "chosen_details",
+			},
+		},
+		{
+			$lookup: {
+				from: "candidates",
+				localField: "rejected_candidate_id",
+				foreignField: "candidate_id",
+				as: "rejected_details",
+			},
+		},
+		{
+			$unwind: {
+				path: "$chosen_details",
+				preserveNullAndEmptyArrays: true,
+			},
+		},
+		{
+			$unwind: {
+				path: "$rejected_details",
+				preserveNullAndEmptyArrays: true,
+			},
+		},
+		{
+			$sort: { timestamp: -1 },
+		},
+	]);
+	
 	res.json(choices);
 });
 
