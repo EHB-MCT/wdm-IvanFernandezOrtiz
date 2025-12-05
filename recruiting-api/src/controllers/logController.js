@@ -102,59 +102,7 @@ export const getChoicesWithCandidateDetails = asyncHandler(async (req, res) => {
 	res.json(choices);
 });
 
-export const getChoiceAnalytics = asyncHandler(async (req, res) => {
-	const analytics = await PlayerChoices.aggregate([
-		{
-			$group: {
-				_id: null,
-				totalChoices: { $sum: 1 },
-				averageTimeTaken: { $avg: "$time_taken" },
-				uniquePlayers: { $addToSet: "$player_id" },
-				uniqueCandidates: { $addToSet: "$chosen_candidate_id" },
-				tabViewCounts: { $push: "$tabs_viewed" },
-				positionChoices: { $addToSet: "$position" },
-			},
-		},
-		{
-			$project: {
-				totalChoices: 1,
-				averageTimeTaken: { $round: ["$averageTimeTaken", 2] },
-				uniquePlayerCount: { $size: "$uniquePlayers" },
-				uniqueCandidateCount: { $size: "$uniqueCandidates" },
-				mostViewedTabs: {
-					$reduce: {
-						input: "$tabViewCounts",
-						initialValue: {},
-						in: {
-							$mergeObjects: [
-								"$$value",
-								{
-									$arrayToObject: {
-										input: "$$this",
-									},
-								},
-							],
-						},
-					},
-				},
-				popularPositions: {
-					$size: "$positionChoices"
-				},
-			},
-		},
-	]);
-	
-	const result = analytics[0] || {
-		totalChoices: 0,
-		averageTimeTaken: 0,
-		uniquePlayerCount: 0,
-		uniqueCandidateCount: 0,
-		mostViewedTabs: {},
-		popularPositions: [],
-	};
-	
-	res.json(result);
-});
+
 
 export {
 	createChoice,
