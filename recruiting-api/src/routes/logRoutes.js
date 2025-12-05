@@ -1,11 +1,14 @@
 import { Router } from "express";
 import {
 	createLog,
+	createBatchLogs,
 	getAllLogs,
 	getLogsByPlayer,
 	getLogsByCandidate,
+	getLogsWithCandidateDetails,
+	getAnalytics,
 } from "../controllers/logController.js";
-import { validateLogInput, validateIdParam } from "../middleware/validation.js";
+import { validateLogInput, validateBatchLogInput, validateIdParam } from "../middleware/validation.js";
 
 const router = Router();
 
@@ -18,11 +21,6 @@ const router = Router();
  *       required:
  *         - player_id
  *         - candidate_id
- *         - candidate_gender
- *         - candidate_position
- *         - candidate_education
- *         - candidate_workExperience
- *         - candidate_skills
  *         - tabs_viewed
  *         - time_taken
  *       properties:
@@ -31,32 +29,20 @@ const router = Router();
  *           description: Unique identifier for the player
  *         candidate_id:
  *           type: string
- *           description: Unique identifier for the candidate
- *         candidate_gender:
+ *           description: Unique identifier for the selected candidate
+ *         opponent_candidate_id:
  *           type: string
- *           description: Gender of the candidate
- *         candidate_position:
- *           type: string
- *           description: Position the candidate is applying for
- *         candidate_education:
- *           type: string
- *           description: Education level of the candidate
- *         candidate_workExperience:
- *           type: string
- *           description: Work experience of the candidate
- *         candidate_skills:
- *           type: array
- *           items:
- *             type: string
- *           description: List of candidate skills
+ *           description: Unique identifier for the opponent candidate (optional)
  *         tabs_viewed:
  *           type: array
  *           items:
  *             type: string
+ *             enum: [CV, LINKEDIN, PORTFOLIO, SKILLS, EXPERIENCE, EDUCATION]
  *           description: List of tabs the player viewed
  *         time_taken:
  *           type: number
- *           description: Time taken by the player in seconds
+ *           minimum: 0
+ *           description: Time taken by the player in seconds (must be non-negative)
  *         timestamp:
  *           type: string
  *           format: date-time
@@ -167,5 +153,121 @@ router.get("/player/:playerId", validateIdParam("playerId"), getLogsByPlayer);
  *         description: Server error
  */
 router.get("/candidate/:candidateId", validateIdParam("candidateId"), getLogsByCandidate);
+
+/**
+ * @swagger
+ * /api/log/batch:
+ *   post:
+ *     summary: Create multiple log entries at once
+ *     tags: [Logs]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - logs
+ *             properties:
+ *               logs:
+ *                 type: array
+ *                 items:
+ *                   $ref: '#/components/schemas/PlayerLog'
+ *                 description: Array of log entries to create
+ *     responses:
+ *       201:
+ *         description: Logs created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: ok
+ *                 created:
+ *                   type: number
+ *                   description: Number of logs created
+ *                 ids:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                   description: IDs of created logs
+ *       400:
+ *         description: Invalid request body
+ */
+router.post("/batch", validateBatchLogInput, createBatchLogs);
+
+/**
+ * @swagger
+ * /api/log/analytics:
+ *   get:
+ *     summary: Get analytics data from logs
+ *     tags: [Logs]
+ *     responses:
+ *       200:
+ *         description: Analytics data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 totalLogs:
+ *                   type: number
+ *                   description: Total number of logs
+ *                 averageTimeTaken:
+ *                   type: number
+ *                   description: Average time taken across all logs
+ *                 uniquePlayerCount:
+ *                   type: number
+ *                   description: Number of unique players
+ *                 uniqueCandidateCount:
+ *                   type: number
+ *                   description: Number of unique candidates
+ *                 mostViewedTabs:
+ *                   type: object
+ *                   description: Count of each tab type viewed
+ */
+router.get("/analytics", getAnalytics);
+
+/**
+ * @swagger
+ * /api/log/details:
+ *   get:
+ *     summary: Get all logs with full candidate details
+ *     tags: [Logs]
+ *     responses:
+ *       200:
+ *         description: List of logs with candidate details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   _id:
+ *                     type: string
+ *                   player_id:
+ *                     type: string
+ *                   candidate_id:
+ *                     type: string
+ *                   opponent_candidate_id:
+ *                     type: string
+ *                   tabs_viewed:
+ *                     type: array
+ *                     items:
+ *                       type: string
+ *                   time_taken:
+ *                     type: number
+ *                   timestamp:
+ *                     type: string
+ *                     format: date-time
+ *                   candidate_details:
+ *                     $ref: '#/components/schemas/Candidate'
+ *                   opponent_details:
+ *                     $ref: '#/components/schemas/Candidate'
+ */
+router.get("/details", getLogsWithCandidateDetails);
 
 export default router;

@@ -1,12 +1,10 @@
+const TAB_TYPES = ["CV", "LINKEDIN", "PORTFOLIO", "SKILLS", "EXPERIENCE", "EDUCATION"];
+
 export const validateLogInput = (req, res, next) => {
 	const {
 		player_id,
 		candidate_id,
-		candidate_gender,
-		candidate_position,
-		candidate_education,
-		candidate_workExperience,
-		candidate_skills,
+		opponent_candidate_id,
 		tabs_viewed,
 		time_taken,
 	} = req.body;
@@ -21,36 +19,137 @@ export const validateLogInput = (req, res, next) => {
 		errors.push("candidate_id is required and must be a string");
 	}
 
-	if (!candidate_gender || typeof candidate_gender !== "string") {
-		errors.push("candidate_gender is required and must be a string");
-	}
-
-	if (!candidate_position || typeof candidate_position !== "string") {
-		errors.push("candidate_position is required and must be a string");
-	}
-
-	if (!candidate_education || typeof candidate_education !== "string") {
-		errors.push("candidate_education is required and must be a string");
-	}
-
-	if (!candidate_workExperience || typeof candidate_workExperience !== "string") {
-		errors.push("candidate_workExperience is required and must be a string");
-	}
-
-	if (!candidate_skills || !Array.isArray(candidate_skills)) {
-		errors.push("candidate_skills is required and must be an array");
-	} else if (candidate_skills.some(skill => typeof skill !== "string")) {
-		errors.push("All candidate_skills must be strings");
+	if (opponent_candidate_id && typeof opponent_candidate_id !== "string") {
+		errors.push("opponent_candidate_id must be a string if provided");
 	}
 
 	if (!tabs_viewed || !Array.isArray(tabs_viewed)) {
 		errors.push("tabs_viewed is required and must be an array");
-	} else if (tabs_viewed.some(tab => typeof tab !== "string")) {
-		errors.push("All tabs_viewed must be strings");
+	} else {
+		const invalidTabs = tabs_viewed.filter(tab => !TAB_TYPES.includes(tab));
+		if (invalidTabs.length > 0) {
+			errors.push(`Invalid tabs_viewed values: ${invalidTabs.join(", ")}. Must be one of: ${TAB_TYPES.join(", ")}`);
+		}
 	}
 
-	if (time_taken === undefined || typeof time_taken !== "number" || time_taken < 0) {
-		errors.push("time_taken is required and must be a non-negative number");
+	if (time_taken === undefined || typeof time_taken !== "number") {
+		errors.push("time_taken is required and must be a number");
+	} else if (!Number.isFinite(time_taken)) {
+		errors.push("time_taken must be a valid finite number");
+	} else if (time_taken < 0) {
+		errors.push("time_taken cannot be negative");
+	}
+
+	if (errors.length > 0) {
+		return res.status(400).json({
+			error: "Validation failed",
+			details: errors,
+		});
+	}
+
+	next();
+};
+
+export const validateBatchLogInput = (req, res, next) => {
+	const { logs } = req.body;
+	const errors = [];
+
+	if (!logs || !Array.isArray(logs)) {
+		errors.push("logs field is required and must be an array");
+	} else if (logs.length === 0) {
+		errors.push("logs array cannot be empty");
+	} else if (logs.length > 100) {
+		errors.push("Cannot process more than 100 logs in a single batch");
+	} else {
+		logs.forEach((log, index) => {
+			const logErrors = [];
+			
+			if (!log.player_id || typeof log.player_id !== "string") {
+				logErrors.push("player_id is required and must be a string");
+			}
+
+			if (!log.candidate_id || typeof log.candidate_id !== "string") {
+				logErrors.push("candidate_id is required and must be a string");
+			}
+
+			if (log.opponent_candidate_id && typeof log.opponent_candidate_id !== "string") {
+				logErrors.push("opponent_candidate_id must be a string if provided");
+			}
+
+			if (!log.tabs_viewed || !Array.isArray(log.tabs_viewed)) {
+				logErrors.push("tabs_viewed is required and must be an array");
+			} else {
+				const invalidTabs = log.tabs_viewed.filter(tab => !TAB_TYPES.includes(tab));
+				if (invalidTabs.length > 0) {
+					logErrors.push(`Invalid tabs_viewed values: ${invalidTabs.join(", ")}. Must be one of: ${TAB_TYPES.join(", ")}`);
+				}
+			}
+
+			if (log.time_taken === undefined || typeof log.time_taken !== "number") {
+				logErrors.push("time_taken is required and must be a number");
+			} else if (!Number.isFinite(log.time_taken)) {
+				logErrors.push("time_taken must be a valid finite number");
+			} else if (log.time_taken < 0) {
+				logErrors.push("time_taken cannot be negative");
+			}
+
+			if (logErrors.length > 0) {
+				errors.push(`Log at index ${index}: ${logErrors.join(", ")}`);
+			}
+		});
+	}
+
+	if (errors.length > 0) {
+		return res.status(400).json({
+			error: "Validation failed",
+			details: errors,
+		});
+	}
+
+	next();
+};
+
+export const validateCandidateInput = (req, res, next) => {
+	const {
+		candidate_id,
+		gender,
+		position,
+		education,
+		workExperience,
+		skills,
+	} = req.body;
+
+	const errors = [];
+	const GENDERS = ["male", "female", "other"];
+
+	if (!candidate_id || typeof candidate_id !== "string") {
+		errors.push("candidate_id is required and must be a string");
+	}
+
+	if (!gender || typeof gender !== "string") {
+		errors.push("gender is required and must be a string");
+	} else if (!GENDERS.includes(gender.toLowerCase())) {
+		errors.push(`gender must be one of: ${GENDERS.join(", ")}`);
+	}
+
+	if (!position || typeof position !== "string") {
+		errors.push("position is required and must be a string");
+	}
+
+	if (!education || typeof education !== "string") {
+		errors.push("education is required and must be a string");
+	}
+
+	if (!workExperience || typeof workExperience !== "string") {
+		errors.push("workExperience is required and must be a string");
+	}
+
+	if (!skills || !Array.isArray(skills)) {
+		errors.push("skills is required and must be an array");
+	} else if (skills.some(skill => typeof skill !== "string")) {
+		errors.push("All skills must be strings");
+	} else if (skills.length === 0) {
+		errors.push("skills array cannot be empty");
 	}
 
 	if (errors.length > 0) {
