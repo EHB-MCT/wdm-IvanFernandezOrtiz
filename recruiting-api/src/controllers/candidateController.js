@@ -8,20 +8,6 @@ export const getAllCandidates = asyncHandler(async (req, res) => {
 	res.json(candidates);
 });
 
-export const getCandidatesByPosition = asyncHandler(async (req, res) => {
-	const { position } = req.params;
-	const { limit } = parseQueryParams(req);
-	const candidates = await CandidateService.getCandidatesByPosition(position, limit);
-	res.json(candidates);
-});
-
-export const getCandidatesByGender = asyncHandler(async (req, res) => {
-	const { gender } = req.params;
-	const { limit } = parseQueryParams(req);
-	const candidates = await CandidateService.getCandidatesByGender(gender, limit);
-	res.json(candidates);
-});
-
 export const getCandidateById = asyncHandler(async (req, res) => {
 	const { candidateId } = req.params;
 	const candidate = await CandidateService.getCandidateById(candidateId);
@@ -71,14 +57,14 @@ export const deleteCandidate = asyncHandler(async (req, res) => {
 
 export const getCandidatesByPosition = asyncHandler(async (req, res) => {
 	const { position } = req.params;
-	const limit = parseInt(req.query.limit) || 100;
+	const { limit } = parseQueryParams(req);
 	const candidates = await CandidateService.getCandidatesByPosition(position, limit);
 	res.json(candidates);
 });
 
 export const getCandidatesByGender = asyncHandler(async (req, res) => {
 	const { gender } = req.params;
-	const limit = parseInt(req.query.limit) || 100;
+	const { limit } = parseQueryParams(req);
 	const candidates = await CandidateService.getCandidatesByGender(gender, limit);
 	res.json(candidates);
 });

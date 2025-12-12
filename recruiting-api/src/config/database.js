@@ -2,10 +2,10 @@ import mongoose from "mongoose";
 
 export const connectDatabase = async () => {
 	try {
-		const mongoUri = process.env.MONGO_URI;
+		const mongoUri = process.env.MONGO_URI || "mongodb://localhost:27017/recruiting";
 		
 		if (!mongoUri) {
-			throw new Error("MONGO_URI environment variable is not defined");
+			console.warn("MONGO_URI not found, using default: mongodb://localhost:27017/recruiting");
 		}
 
 		await mongoose.connect(mongoUri, {
@@ -30,7 +30,8 @@ export const connectDatabase = async () => {
 
 	} catch (error) {
 		console.error("Failed to connect to MongoDB:", error);
-		process.exit(1);
+		console.log("⚠️  Starting API without database connection for development...");
+		// Don't exit, continue without database for development
 	}
 };
 
