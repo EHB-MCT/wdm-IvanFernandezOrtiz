@@ -7,7 +7,7 @@ import {
 	getChoicesByCandidate,
 	getChoicesWithCandidateDetails,
 	getChoiceAnalytics,
-} from "../controllers/logController.js";
+} from "../controllers/choiceController.js";
 import { validateLogInput, validateBatchChoiceInput, validateIdParam } from "../middleware/validation.js";
 
 const router = Router();

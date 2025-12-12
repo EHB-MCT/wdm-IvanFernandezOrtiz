@@ -1,14 +1,30 @@
-import Candidate from "../models/Candidate.js";
+import { CandidateService } from "../services/candidateService.js";
 import { asyncHandler } from "../middleware/errorHandler.js";
+import { parseQueryParams } from "../utils/responseHelpers.js";
 
 export const getAllCandidates = asyncHandler(async (req, res) => {
-	const candidates = await Candidate.find().sort({ candidate_id: 1 });
+	const { limit, offset } = parseQueryParams(req);
+	const candidates = await CandidateService.getAllCandidates(limit, offset);
+	res.json(candidates);
+});
+
+export const getCandidatesByPosition = asyncHandler(async (req, res) => {
+	const { position } = req.params;
+	const { limit } = parseQueryParams(req);
+	const candidates = await CandidateService.getCandidatesByPosition(position, limit);
+	res.json(candidates);
+});
+
+export const getCandidatesByGender = asyncHandler(async (req, res) => {
+	const { gender } = req.params;
+	const { limit } = parseQueryParams(req);
+	const candidates = await CandidateService.getCandidatesByGender(gender, limit);
 	res.json(candidates);
 });
 
 export const getCandidateById = asyncHandler(async (req, res) => {
 	const { candidateId } = req.params;
-	const candidate = await Candidate.findOne({ candidate_id: candidateId });
+	const candidate = await CandidateService.getCandidateById(candidateId);
 	
 	if (!candidate) {
 		return res.status(404).json({
@@ -21,18 +37,13 @@ export const getCandidateById = asyncHandler(async (req, res) => {
 });
 
 export const createCandidate = asyncHandler(async (req, res) => {
-	const candidate = new Candidate(req.body);
-	await candidate.save();
+	const candidate = await CandidateService.createCandidate(req.body);
 	res.status(201).json(candidate);
 });
 
 export const updateCandidate = asyncHandler(async (req, res) => {
 	const { candidateId } = req.params;
-	const candidate = await Candidate.findOneAndUpdate(
-		{ candidate_id: candidateId },
-		req.body,
-		{ new: true, runValidators: true }
-	);
+	const candidate = await CandidateService.updateCandidate(candidateId, req.body);
 	
 	if (!candidate) {
 		return res.status(404).json({
@@ -46,7 +57,7 @@ export const updateCandidate = asyncHandler(async (req, res) => {
 
 export const deleteCandidate = asyncHandler(async (req, res) => {
 	const { candidateId } = req.params;
-	const candidate = await Candidate.findOneAndDelete({ candidate_id: candidateId });
+	const candidate = await CandidateService.deleteCandidate(candidateId);
 	
 	if (!candidate) {
 		return res.status(404).json({
@@ -60,12 +71,14 @@ export const deleteCandidate = asyncHandler(async (req, res) => {
 
 export const getCandidatesByPosition = asyncHandler(async (req, res) => {
 	const { position } = req.params;
-	const candidates = await Candidate.find({ position }).sort({ candidate_id: 1 });
+	const limit = parseInt(req.query.limit) || 100;
+	const candidates = await CandidateService.getCandidatesByPosition(position, limit);
 	res.json(candidates);
 });
 
 export const getCandidatesByGender = asyncHandler(async (req, res) => {
 	const { gender } = req.params;
-	const candidates = await Candidate.find({ gender }).sort({ candidate_id: 1 });
+	const limit = parseInt(req.query.limit) || 100;
+	const candidates = await CandidateService.getCandidatesByGender(gender, limit);
 	res.json(candidates);
 });
