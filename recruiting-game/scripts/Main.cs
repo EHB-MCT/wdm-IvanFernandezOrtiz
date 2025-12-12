@@ -26,6 +26,9 @@ public partial class Main : Node
         // Load candidates from JSON
         CandidateLoader.LoadCandidates();
 
+        // Test API connectivity
+        _ = TestApiConnection();
+
         // Cache common nodes if they exist in the scene
         timer = GetNodeOrNull<Timer>("Timer");
         _MessageLabel = GetNode<Label>("Text");
@@ -40,6 +43,30 @@ public partial class Main : Node
 
         // Start the game
         NewGame();
+    }
+
+    private async Task TestApiConnection()
+    {
+        try
+        {
+            GD.Print("Testing API connectivity...");
+            var testRequest = new HttpRequestMessage(HttpMethod.Get, "http://localhost:5000/");
+            using var response = await client.SendAsync(testRequest);
+            
+            if (response.IsSuccessStatusCode)
+            {
+                GD.Print("✅ API connection successful");
+            }
+            else
+            {
+                GD.Print($"⚠️ API returned status: {response.StatusCode}");
+            }
+        }
+        catch (Exception ex)
+        {
+            GD.Print($"❌ API connection failed: {ex.Message}");
+            GD.Print("Make sure the API server is running on localhost:5000");
+        }
     }
 
     private void NewGame()
@@ -125,7 +152,28 @@ public partial class Main : Node
 
 
 
-    private static readonly System.Net.Http.HttpClient client = new System.Net.Http.HttpClient();
+    private static readonly System.Net.Http.HttpClient client = new System.Net.Http.HttpClient()
+    {
+        Timeout = TimeSpan.FromSeconds(10)
+    };
+
+    private static async Task<HttpResponseMessage> SendWithRetry(HttpRequestMessage request, int maxRetries = 3)
+    {
+        for (int attempt = 1; attempt <= maxRetries; attempt++)
+        {
+            try
+            {
+                var response = await client.SendAsync(request);
+                return response;
+            }
+            catch (HttpRequestException ex) when (attempt < maxRetries)
+            {
+                GD.Print($"Request attempt {attempt} failed: {ex.Message}. Retrying...");
+                await Task.Delay(1000 * attempt); // Exponential backoff
+            }
+        }
+        throw new HttpRequestException("All retry attempts failed");
+    }
 
     public override void _Process(double delta)
     {
@@ -196,58 +244,95 @@ public partial class Main : Node
 
     public async Task SendLog(Godot.Collections.Dictionary data)
     {
-        // Convert Godot Dictionary → C# Dictionary<string, object>
-        var logData = new Dictionary<string, object>();
-
-        foreach (var key in data.Keys)
+        try
         {
-            GD.Print($"KEY = {key}, VALUE = {data[key]}");
+            // Convert Godot Dictionary → C# Dictionary<string, object>
+            var logData = new Dictionary<string, object>();
 
-            var value = data[key];
-            // logData[key.ToString()] = value.ToString();
-
-            switch (value.VariantType)
+            foreach (var key in data.Keys)
             {
-                case Variant.Type.String:
-                    logData[key.ToString()] = (string)value;
-                    break;
+                GD.Print($"KEY = {key}, VALUE = {data[key]}");
 
-                case Variant.Type.Int:
-                    logData[key.ToString()] = (int)value;
-                    break;
+                var value = data[key];
+                // logData[key.ToString()] = value.ToString();
 
-                case Variant.Type.Array:
-                    var arr = (Godot.Collections.Array)value;
+                switch (value.VariantType)
+                {
+                    case Variant.Type.String:
+                        logData[key.ToString()] = (string)value;
+                        break;
 
-                    // check if it's an array of strings
-                    var stringList = new List<string>();
-                    foreach (var item in arr)
-                        stringList.Add(item.ToString());
+                    case Variant.Type.Int:
+                        logData[key.ToString()] = (int)value;
+                        break;
 
-                    logData[key.ToString()] = stringList.ToArray();
-                    break;
+                    case Variant.Type.Array:
+                        var arr = (Godot.Collections.Array)value;
 
-                case Variant.Type.Float:
-                    // store as double for JSON serializer compatibility
-                    logData[key.ToString()] = (double)value;
-                    break;
+                        // check if it's an array of strings
+                        var stringList = new List<string>();
+                        foreach (var item in arr)
+                            stringList.Add(item.ToString());
 
-                default:
-                    logData[key.ToString()] = value.ToString();
-                    break;
+                        logData[key.ToString()] = stringList.ToArray();
+                        break;
+
+                    case Variant.Type.Float:
+                        // store as double for JSON serializer compatibility
+                        logData[key.ToString()] = (double)value;
+                        break;
+
+                    default:
+                        logData[key.ToString()] = value.ToString();
+                        break;
+                }
+            }
+
+            // Serialize to JSON
+            var json = JsonSerializer.Serialize(logData, new JsonSerializerOptions 
+            { 
+                WriteIndented = false,
+                PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
+            });
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            GD.Print($"Sending JSON: {json}");
+
+            var request = new HttpRequestMessage(HttpMethod.Post, "http://localhost:5000/api/choices")
+            {
+                Content = content
+            };
+            
+            using var response = await SendWithRetry(request);
+            
+            if (response.IsSuccessStatusCode)
+            {
+                GD.Print("Log sent successfully");
+                var responseContent = await response.Content.ReadAsStringAsync();
+                GD.Print($"Response: {responseContent}");
+            }
+            else
+            {
+                GD.Print($"Failed to log data: {response.StatusCode}");
+                var errorContent = await response.Content.ReadAsStringAsync();
+                GD.Print($"Error response: {errorContent}");
             }
         }
-
-        // Serialize to JSON
-        var json = JsonSerializer.Serialize(logData);
-        var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-        var response = await client.PostAsync("http://localhost:5000/api/choices", content);
-
-        if (response.IsSuccessStatusCode)
-            GD.Print("Log sent successfully");
-        else
-            GD.Print($"Failed to log data: {response.StatusCode}");
+        catch (HttpRequestException ex)
+        {
+            GD.Print($"HTTP Request Exception: {ex.Message}");
+            GD.Print($"This might be a network connectivity issue or the API server is not running.");
+        }
+        catch (TaskCanceledException ex)
+        {
+            GD.Print($"Request Timeout: {ex.Message}");
+            GD.Print($"The API request timed out. Check if the server is responding.");
+        }
+        catch (Exception ex)
+        {
+            GD.Print($"Unexpected error: {ex.Message}");
+            GD.Print($"Stack trace: {ex.StackTrace}");
+        }
     }
 
     private async void OnTimeOut()
