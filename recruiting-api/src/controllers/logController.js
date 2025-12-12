@@ -34,197 +34,89 @@ export const createBatchChoices = asyncHandler(async (req, res) => {
 });
 
 export const getAllChoices = asyncHandler(async (req, res) => {
+	// Temporarily disabled populate until candidates are imported to database
 	const choices = await PlayerChoices.find()
-		.populate("chosen_candidate_id", "candidate_id gender position education workExperience skills")
-		.populate("rejected_candidate_id", "candidate_id gender position education workExperience skills")
 		.sort({ timestamp: -1 });
 	res.json(choices);
 });
 
 export const getChoicesByPlayer = asyncHandler(async (req, res) => {
 	const { playerId } = req.params;
+	// Temporarily disabled populate until candidates are imported to database
 	const choices = await PlayerChoices.find({ player_id: playerId })
-		.populate("chosen_candidate_id", "candidate_id gender position education workExperience skills")
-		.populate("rejected_candidate_id", "candidate_id gender position education workExperience skills")
 		.sort({ timestamp: -1 });
 	res.json(choices);
 });
 
 export const getChoicesByCandidate = asyncHandler(async (req, res) => {
 	const { candidateId } = req.params;
+	// Temporarily disabled populate until candidates are imported to database
 	const choices = await PlayerChoices.find({ 
 		$or: [
 			{ chosen_candidate_id: candidateId },
 			{ rejected_candidate_id: candidateId }
 		]
 	})
-		.populate("chosen_candidate_id", "candidate_id gender position education workExperience skills")
-		.populate("rejected_candidate_id", "candidate_id gender position education workExperience skills")
 		.sort({ timestamp: -1 });
 	res.json(choices);
 });
 
 export const getChoicesWithCandidateDetails = asyncHandler(async (req, res) => {
-	const choices = await PlayerChoices.aggregate([
-		{
-			$lookup: {
-				from: "candidates",
-				localField: "chosen_candidate_id",
-				foreignField: "candidate_id",
-				as: "chosen_details",
-			},
-		},
-		{
-			$lookup: {
-				from: "candidates",
-				localField: "rejected_candidate_id",
-				foreignField: "candidate_id",
-				as: "rejected_details",
-			},
-		},
-		{
-			$unwind: {
-				path: "$chosen_details",
-				preserveNullAndEmptyArrays: true,
-			},
-		},
-		{
-			$unwind: {
-				path: "$rejected_details",
-				preserveNullAndEmptyArrays: true,
-			},
-		},
-		{
-			$sort: { timestamp: -1 },
-		},
-	]);
-	
+	// Temporarily disabled aggregation until candidates are imported to database
+	const choices = await PlayerChoices.find()
+		.sort({ timestamp: -1 });
 	res.json(choices);
 });
 
 export const getChoiceAnalytics = asyncHandler(async (req, res) => {
-	const analytics = await PlayerChoices.aggregate([
-		{
-			$lookup: {
-				from: "candidates",
-				localField: "chosen_candidate_id",
-				foreignField: "candidate_id",
-				as: "chosen_details",
-			},
-		},
-		{
-			$unwind: {
-				path: "$chosen_details",
-				preserveNullAndEmptyArrays: true,
-			},
-		},
-		{
-			$group: {
-				_id: null,
-				totalChoices: { $sum: 1 },
-				averageTimeTaken: { $avg: "$time_taken" },
-				uniquePlayerCount: { $addToSet: "$player_id" },
-				uniqueCandidateCount: { $addToSet: "$chosen_candidate_id" },
-				allTabs: { $push: "$tabs_viewed" },
-				genders: { $push: "$chosen_details.gender" },
-				positions: { $push: "$position" },
-			},
-		},
-		{
-			$project: {
-				totalChoices: 1,
-				averageTimeTaken: { $round: ["$averageTimeTaken", 2] },
-				uniquePlayerCount: { $size: "$uniquePlayerCount" },
-				uniqueCandidateCount: { $size: "$uniqueCandidateCount" },
-				mostViewedTabs: {
-					$reduce: {
-						input: "$allTabs",
-						initialValue: { PROFILE: 0, SKILLS: 0, WORK: 0, EDUCATION: 0 },
-						in: {
-							$mergeObjects: [
-								"$$value",
-								{
-									$arrayToObject: {
-										$map: {
-											input: "$$this",
-											as: "tab",
-											in: {
-												k: "$$tab",
-												v: {
-													$add: [
-														{ $ifNull: [{ $getField: { field: "$$tab", input: "$$value" } }, 0] },
-														1
-													]
-												}
-											}
-										}
-									}
-								}
-							]
-						}
-					}
-				},
-				genderDistribution: {
-					$reduce: {
-						input: "$genders",
-						initialValue: {},
-						in: {
-							$mergeObjects: [
-								"$$value",
-								{
-									$cond: {
-										if: { $ne: ["$$this", null] },
-										then: {
-											$arrayToObject: [[
-												{ k: "$$this", v: { $add: [{ $ifNull: [{ $getField: { field: "$$this", input: "$$value" } }, 0] }, 1] } }
-											]]
-										},
-										else: "$$value"
-									}
-								}
-							]
-						}
-					}
-				},
-				popularPositions: {
-					$reduce: {
-						input: "$positions",
-						initialValue: {},
-						in: {
-							$mergeObjects: [
-								"$$value",
-								{
-									$arrayToObject: [[
-										{ k: "$$this", v: { $add: [{ $ifNull: [{ $getField: { field: "$$this", input: "$$value" } }, 0] }, 1] } }
-									]]
-								}
-							]
-						}
-					}
-				}
+	// Simplified analytics without candidate lookups until candidates are imported to database
+	const choices = await PlayerChoices.find();
+	
+	if (choices.length === 0) {
+		return res.json({
+			totalChoices: 0,
+			averageTimeTaken: 0,
+			uniquePlayerCount: 0,
+			uniqueCandidateCount: 0,
+			mostViewedTabs: { PROFILE: 0, SKILLS: 0, WORK: 0, EDUCATION: 0 },
+			popularPositions: []
+		});
+	}
+
+	// Calculate basic analytics
+	const totalChoices = choices.length;
+	const averageTimeTaken = choices.reduce((sum, choice) => sum + choice.time_taken, 0) / totalChoices;
+	const uniquePlayers = new Set(choices.map(choice => choice.player_id));
+	const uniqueCandidates = new Set(choices.map(choice => choice.chosen_candidate_id));
+	
+	// Calculate tab views
+	const tabCounts = { PROFILE: 0, SKILLS: 0, WORK: 0, EDUCATION: 0 };
+	choices.forEach(choice => {
+		choice.tabs_viewed.forEach(tab => {
+			if (tabCounts.hasOwnProperty(tab)) {
+				tabCounts[tab]++;
 			}
-		}
-	]);
-
-	const result = analytics[0] || {
-		totalChoices: 0,
-		averageTimeTaken: 0,
-		uniquePlayerCount: 0,
-		uniqueCandidateCount: 0,
-		mostViewedTabs: { PROFILE: 0, SKILLS: 0, WORK: 0, EDUCATION: 0 },
-		genderDistribution: {},
-		popularPositions: {}
-	};
-
-	// Sort positions by count and return top 10
-	const sortedPositions = Object.entries(result.popularPositions)
+		});
+	});
+	
+	// Calculate position popularity
+	const positionCounts = {};
+	choices.forEach(choice => {
+		positionCounts[choice.position] = (positionCounts[choice.position] || 0) + 1;
+	});
+	
+	const popularPositions = Object.entries(positionCounts)
 		.sort(([,a], [,b]) => b - a)
 		.slice(0, 10)
 		.map(([position, count]) => ({ position, count }));
 
 	res.json({
-		...result,
-		popularPositions: sortedPositions
+		totalChoices,
+		averageTimeTaken: Math.round(averageTimeTaken * 100) / 100,
+		uniquePlayerCount: uniquePlayers.size,
+		uniqueCandidateCount: uniqueCandidates.size,
+		mostViewedTabs: tabCounts,
+		popularPositions
 	});
 });
 
