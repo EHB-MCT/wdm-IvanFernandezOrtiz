@@ -1,7 +1,5 @@
 using Godot;
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 public partial class Main : Node
@@ -128,6 +126,11 @@ public partial class Main : Node
 
         // Check if round should advance
         CheckRoundProgress();
+    }
+
+    private async void OnTimeOut()
+    {
+        await OnTimeout();
     }
 
     // This method is now handled by ApiService.CreateTimeoutLogData

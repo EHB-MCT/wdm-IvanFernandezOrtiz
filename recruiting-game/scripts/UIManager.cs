@@ -9,9 +9,11 @@ public partial class UIManager : Node
 
     public void Initialize(Node parentNode)
     {
-        _MessageLabel = parentNode.GetNode<Label>("Text");
+        _MessageLabel = parentNode.GetNode<Label>("MessageLabel");
         _TimeLeftLabel = parentNode.GetNode<Label>("TimeLeft");
         _timer = parentNode.GetNode<Timer>("Timer");
+        
+        GD.Print($"UIManager initialized - MessageLabel: {_MessageLabel != null}, TimeLeftLabel: {_TimeLeftLabel != null}, Timer: {_timer != null}");
     }
 
     public void UpdateTimerDisplay()
@@ -28,12 +30,18 @@ public partial class UIManager : Node
         if (_MessageLabel != null)
         {
             _MessageLabel.Text = message;
+            GD.Print($"UI Message set: {message}");
+        }
+        else
+        {
+            GD.PrintErr("MessageLabel is null - cannot set message");
         }
     }
 
     public void ShowTimeoutMessage()
     {
         SetMessage("Time ran out");
+        GD.Print("UI Message set to: Time ran out");
     }
 
     public void ShowGameCompleteMessage()
