@@ -1,6 +1,7 @@
 using Godot;
 using Godot.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 public partial class Resume : Control
 {
@@ -8,6 +9,7 @@ public partial class Resume : Control
     [Signal]
     public delegate void ResumeChosenEventHandler(Godot.Collections.Dictionary data);
 
+    [Export] public string CandidateId;
     [Export] public string CandidateName;
     [Export] public string CandidatePosition;
     [Export] public string Gender;
@@ -119,13 +121,13 @@ public partial class Resume : Control
     private void OnChooseButtonPressed()
     {
         var data = new Dictionary {
-        {"candidate_id", CandidateName ?? Unknown },
+        {"candidate_id", CandidateId ?? Unknown },
         {"candidate_gender", Gender ?? Unknown},
         {"candidate_position", CandidatePosition ?? Unknown},
         {"candidate_education", Education ?? Unknown},
         {"candidate_workExperience", WorkExperience ?? Unknown},
         {"candidate_skills", Skills ?? new string[0]},
-        {"tabs_viewed", new Array<string>(viewedTabs) },
+        {"tabs_viewed", new Array(viewedTabs.Select(tab => (Variant)tab).ToArray()) },
         {"time_taken", timeTaken}
     };
 
@@ -170,11 +172,12 @@ public partial class Resume : Control
     /// <summary>
     /// Set resume data after instantiation (for dynamic loading).
     /// </summary>
-    public void SetResumeData(string candidateName, string position, string gender,
+    public void SetResumeData(string candidateId, string candidateName, string position, string gender,
         string education, string[] skills, string picturePath, string workExperience)
     {
         GD.Print($"SetResumeData called with skills: {(skills != null ? string.Join(", ", skills) : "null")}");
 
+        CandidateId = candidateId ?? "UNKNOWN001";
         CandidateName = candidateName ?? "Unknown Candidate";
         CandidatePosition = position ?? "Unknown Position";
         Gender = gender ?? "Unknown";
