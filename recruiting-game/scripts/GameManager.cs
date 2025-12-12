@@ -26,7 +26,6 @@ public static class GameManager
         if (AvailableCandidates == null || AvailableCandidates.Length == 0)
         {
             GD.PrintErr("No candidates loaded!");
-            return;
         }
     }
 

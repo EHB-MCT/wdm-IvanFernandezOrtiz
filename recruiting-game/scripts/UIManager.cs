@@ -13,7 +13,7 @@ public partial class UIManager : Node
         _TimeLeftLabel = parentNode.GetNode<Label>("TimeLeft");
         _timer = parentNode.GetNode<Timer>("Timer");
         
-        GD.Print($"UIManager initialized - MessageLabel: {_MessageLabel != null}, TimeLeftLabel: {_TimeLeftLabel != null}, Timer: {_timer != null}");
+        GD.Print($"UIManager initialized - MessageLabel: {(_MessageLabel != null ? "found" : "not found")}, TimeLeft: {(_TimeLeftLabel != null ? "found" : "not found")}, Timer: {(_timer != null ? "found" : "not found")}");
     }
 
     public void UpdateTimerDisplay()
@@ -27,21 +27,21 @@ public partial class UIManager : Node
 
     public void SetMessage(string message)
     {
+        GD.Print($"UIManager: Setting message to '{message}'");
         if (_MessageLabel != null)
         {
             _MessageLabel.Text = message;
-            GD.Print($"UI Message set: {message}");
+            GD.Print($"UIManager: MessageLabel updated successfully");
         }
         else
         {
-            GD.PrintErr("MessageLabel is null - cannot set message");
+            GD.Print("UIManager: MessageLabel is null - node not found!");
         }
     }
 
     public void ShowTimeoutMessage()
     {
         SetMessage("Time ran out");
-        GD.Print("UI Message set to: Time ran out");
     }
 
     public void ShowGameCompleteMessage()

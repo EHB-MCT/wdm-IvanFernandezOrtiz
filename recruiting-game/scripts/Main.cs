@@ -21,7 +21,10 @@ public partial class Main : Node
 
         // Subscribe to events
         _roundManager.OnResumeChosen += OnResumeChosen;
-        _roundManager.OnTimeout += OnTimeout;
+        
+        // Connect to timer timeout signal
+        var timer = GetNode<Timer>("Timer");
+        timer.Timeout += OnTimeout;
 
         // Load candidates from JSON
         CandidateLoader.LoadCandidates();
@@ -126,11 +129,6 @@ public partial class Main : Node
 
         // Check if round should advance
         CheckRoundProgress();
-    }
-
-    private async void OnTimeOut()
-    {
-        await OnTimeout();
     }
 
     // This method is now handled by ApiService.CreateTimeoutLogData
