@@ -3,10 +3,12 @@ const TAB_TYPES = ["PROFILE", "SKILLS", "WORK", "EDUCATION"];
 export const validateLogInput = (req, res, next) => {
 	const {
 		player_id,
-		candidate_id,
-		opponent_candidate_id,
+		chosen_candidate_id,
+		rejected_candidate_id,
+		position,
 		tabs_viewed,
 		time_taken,
+		round_number,
 	} = req.body;
 
 	const errors = [];
@@ -15,12 +17,16 @@ export const validateLogInput = (req, res, next) => {
 		errors.push("player_id is required and must be a string");
 	}
 
-	if (!candidate_id || typeof candidate_id !== "string") {
-		errors.push("candidate_id is required and must be a string");
+	if (!chosen_candidate_id || typeof chosen_candidate_id !== "string") {
+		errors.push("chosen_candidate_id is required and must be a string");
 	}
 
-	if (opponent_candidate_id && typeof opponent_candidate_id !== "string") {
-		errors.push("opponent_candidate_id must be a string if provided");
+	if (rejected_candidate_id && typeof rejected_candidate_id !== "string") {
+		errors.push("rejected_candidate_id must be a string if provided");
+	}
+
+	if (!position || typeof position !== "string") {
+		errors.push("position is required and must be a string");
 	}
 
 	if (!tabs_viewed || !Array.isArray(tabs_viewed)) {
@@ -38,6 +44,12 @@ export const validateLogInput = (req, res, next) => {
 		errors.push("time_taken must be a valid finite number");
 	} else if (time_taken < 0) {
 		errors.push("time_taken cannot be negative");
+	}
+
+	if (round_number === undefined || typeof round_number !== "number") {
+		errors.push("round_number is required and must be a number");
+	} else if (!Number.isInteger(round_number) || round_number < 1) {
+		errors.push("round_number must be a positive integer");
 	}
 
 	if (errors.length > 0) {
