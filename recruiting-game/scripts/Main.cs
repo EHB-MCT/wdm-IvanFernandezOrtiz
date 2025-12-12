@@ -49,8 +49,9 @@ public partial class Main : Node
     {
         try
         {
-            GD.Print("Testing API connectivity...");
-            var testRequest = new HttpRequestMessage(HttpMethod.Get, "http://localhost:5000/");
+            var apiUrl = Environment.GetEnvironmentVariable("API_URL") ?? "http://localhost:5000";
+            GD.Print($"Testing API connectivity to: {apiUrl}...");
+            var testRequest = new HttpRequestMessage(HttpMethod.Get, $"{apiUrl}/");
             using var response = await client.SendAsync(testRequest);
             
             if (response.IsSuccessStatusCode)
@@ -65,7 +66,18 @@ public partial class Main : Node
         catch (Exception ex)
         {
             GD.Print($"❌ API connection failed: {ex.Message}");
-            GD.Print("Make sure the API server is running on localhost:5000");
+            GD.Print($"Make sure to API server is running and API_URL is set correctly");
+        }
+    }
+            else
+            {
+                GD.Print($"⚠️ API returned status: {response.StatusCode}");
+            }
+        }
+        catch (Exception ex)
+        {
+            GD.Print($"❌ API connection failed: {ex.Message}");
+            GD.Print("Make sure to API server is running and API_URL is set correctly");
         }
     }
 
@@ -298,7 +310,8 @@ public partial class Main : Node
 
             GD.Print($"Sending JSON: {json}");
 
-            var request = new HttpRequestMessage(HttpMethod.Post, "http://localhost:5000/api/choices")
+            var apiUrl = Environment.GetEnvironmentVariable("API_URL") ?? "http://localhost:5000";
+            var request = new HttpRequestMessage(HttpMethod.Post, $"{apiUrl}/api/choices")
             {
                 Content = content
             };
