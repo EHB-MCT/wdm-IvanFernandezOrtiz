@@ -17,9 +17,32 @@ public partial class Main : Node
 
     private Marker2D PositionA;
     private Marker2D PositionB;
-    
+
     private CandidateData[] currentCandidates;
     private int currentRound = 1;
+
+    private static readonly System.Net.Http.HttpClient client = new System.Net.Http.HttpClient()
+    {
+        Timeout = TimeSpan.FromSeconds(10)
+    };
+
+    private static async Task<HttpResponseMessage> SendWithRetry(HttpRequestMessage request, int maxRetries = 3)
+    {
+        for (int attempt = 1; attempt <= maxRetries; attempt++)
+        {
+            try
+            {
+                var response = await client.SendAsync(request);
+                return response;
+            }
+            catch (HttpRequestException ex) when (attempt < maxRetries)
+            {
+                GD.Print($"Request attempt {attempt} failed: {ex.Message}. Retrying...");
+                await Task.Delay(1000 * attempt); // Exponential backoff
+            }
+        }
+        throw new HttpRequestException("All retry attempts failed");
+    }
 
     public override void _Ready()
     {
@@ -49,34 +72,23 @@ public partial class Main : Node
     {
         try
         {
-            var apiUrl = Environment.GetEnvironmentVariable("API_URL") ?? "http://localhost:5000";
+            var apiUrl = System.Environment.GetEnvironmentVariable("API_URL") ?? "http://localhost:5000";
             GD.Print($"Testing API connectivity to: {apiUrl}...");
             var testRequest = new HttpRequestMessage(HttpMethod.Get, $"{apiUrl}/");
             using var response = await client.SendAsync(testRequest);
-            
+
             if (response.IsSuccessStatusCode)
             {
-                GD.Print("✅ API connection successful");
+                GD.Print("API connection successful");
             }
             else
             {
-                GD.Print($"⚠️ API returned status: {response.StatusCode}");
+                GD.Print($"API returned status: {response.StatusCode}");
             }
         }
         catch (Exception ex)
         {
-            GD.Print($"❌ API connection failed: {ex.Message}");
-            GD.Print($"Make sure to API server is running and API_URL is set correctly");
-        }
-    }
-            else
-            {
-                GD.Print($"⚠️ API returned status: {response.StatusCode}");
-            }
-        }
-        catch (Exception ex)
-        {
-            GD.Print($"❌ API connection failed: {ex.Message}");
+            GD.Print($"API connection failed: {ex.Message}");
             GD.Print("Make sure to API server is running and API_URL is set correctly");
         }
     }
@@ -129,7 +141,6 @@ public partial class Main : Node
             }
             else
             {
-                GD.PrintErr($"Marker {(i == 0 ? "Option1" : "Option2")} not found!");
                 // Fallback positioning
                 resumeInstance.Position = new Vector2(i == 0 ? 155 : 672, 155);
             }
@@ -149,8 +160,6 @@ public partial class Main : Node
             );
             resumeInstance.ResumeChosen += OnResumeChosen;
         }
-
-        GetNode<Timer>("Timer").Start();
     }
 
     /// <summary>
@@ -160,31 +169,6 @@ public partial class Main : Node
     {
         GD.Print("Refreshing candidates...");
         NewGame();
-    }
-
-
-
-    private static readonly System.Net.Http.HttpClient client = new System.Net.Http.HttpClient()
-    {
-        Timeout = TimeSpan.FromSeconds(10)
-    };
-
-    private static async Task<HttpResponseMessage> SendWithRetry(HttpRequestMessage request, int maxRetries = 3)
-    {
-        for (int attempt = 1; attempt <= maxRetries; attempt++)
-        {
-            try
-            {
-                var response = await client.SendAsync(request);
-                return response;
-            }
-            catch (HttpRequestException ex) when (attempt < maxRetries)
-            {
-                GD.Print($"Request attempt {attempt} failed: {ex.Message}. Retrying...");
-                await Task.Delay(1000 * attempt); // Exponential backoff
-            }
-        }
-        throw new HttpRequestException("All retry attempts failed");
     }
 
     public override void _Process(double delta)
@@ -209,7 +193,7 @@ public partial class Main : Node
 
         // Get the chosen candidate ID from the data
         string chosenCandidateId = data["candidate_id"].ToString();
-        
+
         // Find the rejected candidate (the other one)
         string rejectedCandidateId = null;
         foreach (var candidate in currentCandidates)
@@ -249,7 +233,7 @@ public partial class Main : Node
         };
 
         await SendLog(logData);
-        
+
         // Increment round for next choice
         currentRound++;
     }
@@ -266,7 +250,6 @@ public partial class Main : Node
                 GD.Print($"KEY = {key}, VALUE = {data[key]}");
 
                 var value = data[key];
-                // logData[key.ToString()] = value.ToString();
 
                 switch (value.VariantType)
                 {
@@ -301,8 +284,8 @@ public partial class Main : Node
             }
 
             // Serialize to JSON
-            var json = JsonSerializer.Serialize(logData, new JsonSerializerOptions 
-            { 
+            var json = JsonSerializer.Serialize(logData, new JsonSerializerOptions
+            {
                 WriteIndented = false,
                 PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
             });
@@ -310,14 +293,14 @@ public partial class Main : Node
 
             GD.Print($"Sending JSON: {json}");
 
-            var apiUrl = Environment.GetEnvironmentVariable("API_URL") ?? "http://localhost:5000";
+            var apiUrl = System.Environment.GetEnvironmentVariable("API_URL") ?? "http://localhost:5000";
             var request = new HttpRequestMessage(HttpMethod.Post, $"{apiUrl}/api/choices")
             {
                 Content = content
             };
-            
+
             using var response = await SendWithRetry(request);
-            
+
             if (response.IsSuccessStatusCode)
             {
                 GD.Print("Log sent successfully");
@@ -334,12 +317,12 @@ public partial class Main : Node
         catch (HttpRequestException ex)
         {
             GD.Print($"HTTP Request Exception: {ex.Message}");
-            GD.Print($"This might be a network connectivity issue or the API server is not running.");
+            GD.Print("This might be a network connectivity issue or API server is not running.");
         }
         catch (TaskCanceledException ex)
         {
             GD.Print($"Request Timeout: {ex.Message}");
-            GD.Print($"The API request timed out. Check if the server is responding.");
+            GD.Print("The API request timed out. Check if the server is responding.");
         }
         catch (Exception ex)
         {
@@ -350,7 +333,7 @@ public partial class Main : Node
 
     private async void OnTimeOut()
     {
-        GD.Print("Took too long");
+        GD.Print("Timeout: took too long");
 
         // Update message label if available
         if (_MessageLabel == null)
