@@ -57,7 +57,7 @@ const startServer = async () => {
 			console.log(`🚀 API server started successfully!`);
 			console.log(`🌐 Environment: ${process.env.NODE_ENV || "development"}`);
 			console.log(`🔗 API URL: ${config.apiUrl}`);
-			console.log(`📊 Database: ${config.mongo.uri.replace(/\/\/.*@/, '//***:***@')}`);
+			console.log(`📊 Database: ${config.mongo.uri ? config.mongo.uri.replace(/\/\/.*@/, '//***:***@') : 'Not configured'}`);
 			console.log(`📡 Health check: http://localhost:${config.port}/`);
 		});
 	} catch (error) {

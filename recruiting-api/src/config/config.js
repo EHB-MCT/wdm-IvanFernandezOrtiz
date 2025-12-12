@@ -29,6 +29,6 @@ export const validateConfig = () => {
     
     console.log('✅ Configuration validated successfully');
     console.log(`🌐 API will run on port: ${config.port}`);
-    console.log(`🔗 MongoDB URI: ${config.mongo.uri.replace(/\/\/.*@/, '//***:***@')}`);
+    console.log(`🔗 MongoDB URI: ${config.mongo.uri ? config.mongo.uri.replace(/\/\/.*@/, '//***:***@') : 'Not configured'}`);
     return true;
 };
