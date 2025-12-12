@@ -1,5 +1,6 @@
 [
   {
+    "candidate_id": "CAND001",
     "candidateName": "Jane Doe",
     "position": "Graphic Designer",
     "gender": "Female",
@@ -9,6 +10,7 @@
     "workExperience": "JSP Group International BV"
   },
   {
+    "candidate_id": "CAND002",
     "candidateName": "John Smith",
     "position": "Software Developer",
     "gender": "Male",
@@ -18,6 +20,7 @@
     "workExperience": "Tech Innovations Inc."
   },
   {
+    "candidate_id": "CAND003",
     "candidateName": "Emily Chen",
     "position": "Data Analyst",
     "gender": "Female",
@@ -27,6 +30,7 @@
     "workExperience": "DataDriven Solutions"
   },
   {
+    "candidate_id": "CAND004",
     "candidateName": "Michael Johnson",
     "position": "Project Manager",
     "gender": "Male",
@@ -36,6 +40,7 @@
     "workExperience": "Global Consulting Group"
   },
   {
+    "candidate_id": "CAND005",
     "candidateName": "Sarah Williams",
     "position": "UX Designer",
     "gender": "Female",
@@ -45,6 +50,7 @@
     "workExperience": "Creative Digital Agency"
   },
   {
+    "candidate_id": "CAND006",
     "candidateName": "Robert Brown",
     "position": "DevOps Engineer",
     "gender": "Male",
@@ -54,6 +60,7 @@
     "workExperience": "CloudTech Systems"
   },
   {
+    "candidate_id": "CAND007",
     "candidateName": "Lisa Anderson",
     "position": "Marketing Specialist",
     "gender": "Female",
@@ -63,6 +70,7 @@
     "workExperience": "Digital Marketing Pro"
   },
   {
+    "candidate_id": "CAND008",
     "candidateName": "David Martinez",
     "position": "Backend Developer",
     "gender": "Male",
@@ -72,6 +80,7 @@
     "workExperience": "Enterprise Software Co."
   },
   {
+    "candidate_id": "CAND009",
     "candidateName": "Jennifer Taylor",
     "position": "Product Designer",
     "gender": "Female",
@@ -81,6 +90,7 @@
     "workExperience": "Innovation Labs"
   },
   {
+    "candidate_id": "CAND010",
     "candidateName": "James Wilson",
     "position": "Full Stack Developer",
     "gender": "Male",
