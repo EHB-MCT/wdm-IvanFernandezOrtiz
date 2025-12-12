@@ -39,6 +39,9 @@ PlayerChoicesSchema.index({ rejected_candidate_id: 1 });
 PlayerChoicesSchema.index({ round_number: 1 });
 PlayerChoicesSchema.index({ timestamp: -1 });
 
+// Temporarily disabled pre-save validation to allow logging without database candidates
+// Re-enable this once candidates are imported to database
+/*
 PlayerChoicesSchema.pre("save", async function(next) {
 	const Candidate = mongoose.model("Candidate");
 	
@@ -58,5 +61,6 @@ PlayerChoicesSchema.pre("save", async function(next) {
 	
 	next();
 });
+*/
 
 export default mongoose.model("PlayerChoices", PlayerChoicesSchema);
