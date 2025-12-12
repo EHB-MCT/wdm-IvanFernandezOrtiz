@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Text.Json;
 using System;
+using System.Linq;
 
 public partial class Main : Node
 {
@@ -16,6 +17,9 @@ public partial class Main : Node
 
     private Marker2D PositionA;
     private Marker2D PositionB;
+    
+    private CandidateData[] currentCandidates;
+    private int currentRound = 1;
 
     public override void _Ready()
     {
@@ -49,28 +53,30 @@ public partial class Main : Node
             }
         }
         // Get random candidates and create resumes
-        var candidates = CandidateLoader.GetAllCandidates();
-        if (candidates.Length == 0)
+        var allCandidates = CandidateLoader.GetAllCandidates();
+        if (allCandidates.Length == 0)
         {
             GD.PrintErr("No candidates loaded!");
             return;
         }
 
         // Create exactly 2 random resumes for the game
-        int resumeCount = Math.Min(2, candidates.Length);
+        int resumeCount = Math.Min(2, allCandidates.Length);
         var usedIndices = new System.Collections.Generic.HashSet<int>();
         var random = new Random();
+        currentCandidates = new CandidateData[resumeCount];
 
         for (int i = 0; i < resumeCount; i++)
         {
             int randomIndex;
             do
             {
-                randomIndex = random.Next(candidates.Length);
+                randomIndex = random.Next(allCandidates.Length);
             } while (usedIndices.Contains(randomIndex));
 
             usedIndices.Add(randomIndex);
-            var candidate = candidates[randomIndex];
+            var candidate = allCandidates[randomIndex];
+            currentCandidates[i] = candidate;
 
             var resumeInstance = _resumeScene.Instantiate<Resume>();
             AddChild(resumeInstance);
@@ -93,6 +99,7 @@ public partial class Main : Node
             resumeInstance.Scale = new Vector2(0.9f, 0.9f);
 
             resumeInstance.SetResumeData(
+                candidate.candidate_id,
                 candidate.candidateName,
                 candidate.position,
                 candidate.gender,
@@ -140,11 +147,51 @@ public partial class Main : Node
         if (timer == null)
             timer = GetNode<Timer>("Timer");
 
-        // Add time left to the data being logged (if timer exists)
-        if (timer != null)
-            data["time_taken"] = timer.TimeLeft;
+        // Get the chosen candidate ID from the data
+        string chosenCandidateId = data["candidate_id"].ToString();
+        
+        // Find the rejected candidate (the other one)
+        string rejectedCandidateId = null;
+        foreach (var candidate in currentCandidates)
+        {
+            if (candidate.candidate_id != chosenCandidateId)
+            {
+                rejectedCandidateId = candidate.candidate_id;
+                break;
+            }
+        }
 
-        await SendLog(data);
+        // Convert tabs_viewed from Godot Array to string array with correct enum values
+        var tabsViewed = new List<string>();
+        if (data.ContainsKey("tabs_viewed"))
+        {
+            var tabsArray = (Godot.Collections.Array)data["tabs_viewed"];
+            foreach (var tab in tabsArray)
+            {
+                string tabStr = tab.ToString().ToUpper();
+                // Map tab names to enum values
+                if (tabStr == "PROFILE") tabsViewed.Add("PROFILE");
+                else if (tabStr == "EDUCATION") tabsViewed.Add("EDUCATION");
+                else if (tabStr == "SKILLS") tabsViewed.Add("SKILLS");
+                else if (tabStr == "WORK") tabsViewed.Add("WORK");
+            }
+        }
+
+        // Create the proper API data structure
+        var logData = new Godot.Collections.Dictionary {
+            {"player_id", "player_" + DateTime.Now.Ticks},
+            {"chosen_candidate_id", chosenCandidateId},
+            {"rejected_candidate_id", rejectedCandidateId},
+            {"position", data["candidate_position"].ToString()},
+            {"time_taken", timer != null ? timer.TimeLeft : 0},
+            {"tabs_viewed", new Godot.Collections.Array(tabsViewed.Select(tab => (Variant)tab).ToArray())},
+            {"round_number", currentRound}
+        };
+
+        await SendLog(logData);
+        
+        // Increment round for next choice
+        currentRound++;
     }
 
     public async Task SendLog(Godot.Collections.Dictionary data)
@@ -195,7 +242,7 @@ public partial class Main : Node
         var json = JsonSerializer.Serialize(logData);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-        var response = await client.PostAsync("http://localhost:5000/api/log", content);
+        var response = await client.PostAsync("http://localhost:5000/api/choices", content);
 
         if (response.IsSuccessStatusCode)
             GD.Print("Log sent successfully");
