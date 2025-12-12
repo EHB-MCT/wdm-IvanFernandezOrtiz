@@ -1,209 +1,65 @@
 using Godot;
-using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
-using System.Collections.Generic;
-using System.Text.Json;
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 public partial class Main : Node
 {
-
-    private Label _MessageLabel;
-    private Timer timer;
-    private Label _TimeLeftLabel;
-    private PackedScene _resumeScene;
-
-    private Marker2D PositionA;
-    private Marker2D PositionB;
-
-    private CandidateData[] currentCandidates;
-    private int currentRound = 1;
-
-    private static readonly System.Net.Http.HttpClient client = new System.Net.Http.HttpClient()
-    {
-        Timeout = TimeSpan.FromSeconds(10)
-    };
-
-    private static async Task<HttpResponseMessage> SendWithRetry(HttpRequestMessage request, int maxRetries = 3)
-    {
-        for (int attempt = 1; attempt <= maxRetries; attempt++)
-        {
-            try
-            {
-                var response = await client.SendAsync(request);
-                return response;
-            }
-            catch (HttpRequestException ex) when (attempt < maxRetries)
-            {
-                GD.Print($"Request attempt {attempt} failed: {ex.Message}. Retrying...");
-                await Task.Delay(1000 * attempt); // Exponential backoff
-            }
-        }
-        throw new HttpRequestException("All retry attempts failed");
-    }
+    private UIManager _uiManager;
+    private RoundManager _roundManager;
 
     public override void _Ready()
     {
+        // Initialize managers
+        _uiManager = new UIManager();
+        _roundManager = new RoundManager();
+        
+        AddChild(_uiManager);
+        AddChild(_roundManager);
+        
+        _uiManager.Initialize(this);
+        _roundManager.Initialize(this);
+
+        // Subscribe to events
+        _roundManager.OnResumeChosen += OnResumeChosen;
+        _roundManager.OnTimeout += OnTimeout;
+
         // Load candidates from JSON
         CandidateLoader.LoadCandidates();
 
         // Test API connectivity
-        _ = TestApiConnection();
-
-        // Cache common nodes if they exist in the scene
-        timer = GetNodeOrNull<Timer>("Timer");
-        _MessageLabel = GetNode<Label>("Text");
-        _TimeLeftLabel = GetNode<Label>("TimeLeft");
-
-        // Get marker references for positioning
-        PositionA = GetNode<Marker2D>("Option1");
-        PositionB = GetNode<Marker2D>("Option2");
-
-        // Load the Resume scene for instantiation
-        _resumeScene = GD.Load<PackedScene>("res://scenes/resume.tscn");
+        _ = TestApiConnectionAsync();
 
         // Start the game
         NewGame();
     }
 
-    private async Task TestApiConnection()
+    private async Task TestApiConnectionAsync()
     {
-        try
-        {
-            var apiUrl = System.Environment.GetEnvironmentVariable("API_URL") ?? "http://localhost:5000";
-            GD.Print($"Testing API connectivity to: {apiUrl}...");
-            var testRequest = new HttpRequestMessage(HttpMethod.Get, $"{apiUrl}/");
-            using var response = await client.SendAsync(testRequest);
-
-            if (response.IsSuccessStatusCode)
-            {
-                GD.Print("API connection successful");
-            }
-            else
-            {
-                GD.Print($"API returned status: {response.StatusCode}");
-            }
-        }
-        catch (Exception ex)
-        {
-            GD.Print($"API connection failed: {ex.Message}");
-            GD.Print("Make sure to API server is running and API_URL is set correctly");
-        }
+        await ApiService.TestConnectionAsync();
     }
 
-    private void NewGame()
+    private async void NewGame()
     {
-        // Clear existing resumes
-        foreach (Node child in GetChildren())
-        {
-            if (child is Resume)
-            {
-                child.QueueFree();
-            }
-        }
-        // Get random candidates and create resumes
-        var allCandidates = CandidateLoader.GetAllCandidates();
-        if (allCandidates.Length == 0)
-        {
-            GD.PrintErr("No candidates loaded!");
-            return;
-        }
-
-        // Create exactly 2 random resumes for the game
-        int resumeCount = Math.Min(2, allCandidates.Length);
-        var usedIndices = new System.Collections.Generic.HashSet<int>();
-        var random = new Random();
-        currentCandidates = new CandidateData[resumeCount];
-
-        for (int i = 0; i < resumeCount; i++)
-        {
-            int randomIndex;
-            do
-            {
-                randomIndex = random.Next(allCandidates.Length);
-            } while (usedIndices.Contains(randomIndex));
-
-            usedIndices.Add(randomIndex);
-            var candidate = allCandidates[randomIndex];
-            currentCandidates[i] = candidate;
-
-            var resumeInstance = _resumeScene.Instantiate<Resume>();
-            AddChild(resumeInstance);
-
-            // Position the resume at the appropriate marker
-            Marker2D targetMarker = (i == 0) ? PositionA : PositionB;
-            if (targetMarker != null)
-            {
-                resumeInstance.Position = targetMarker.Position;
-                GD.Print($"Resume {i + 1} positioned at marker: {targetMarker.Name} at position {targetMarker.Position}");
-            }
-            else
-            {
-                // Fallback positioning
-                resumeInstance.Position = new Vector2(i == 0 ? 155 : 672, 155);
-            }
-
-            // Set scale to match the original design
-            resumeInstance.Scale = new Vector2(0.9f, 0.9f);
-
-            resumeInstance.SetResumeData(
-                candidate.candidate_id,
-                candidate.candidateName,
-                candidate.position,
-                candidate.gender,
-                candidate.education,
-                candidate.skills,
-                candidate.picturePath,
-                candidate.workExperience
-            );
-            resumeInstance.ResumeChosen += OnResumeChosen;
-        }
-    }
-
-    /// <summary>
-    /// Refresh the game with 2 new random candidates.
-    /// </summary>
-    public void RefreshCandidates()
-    {
-        GD.Print("Refreshing candidates...");
-        NewGame();
+        GD.Print("Starting new game...");
+        GameManager.Initialize();
+        await NewRound();
     }
 
     public override void _Process(double delta)
     {
-        // Show remaining time if we have a timer and a label
-        if (timer != null && _TimeLeftLabel != null)
-        {
-            // TimeLeft is a double; show as whole seconds remaining
-            var left = Math.Ceiling(timer.TimeLeft);
-            _TimeLeftLabel.Text = $"Time left: {left}s";
-        }
+        _uiManager.UpdateTimerDisplay();
     }
 
     private async void OnResumeChosen(Godot.Collections.Dictionary data)
     {
+        GD.Print($"Round {GameManager.CurrentRound}: Candidate chosen");
 
-        GD.Print("Main received chosen candidate");
-
-        // Ensure we have a timer reference
-        if (timer == null)
-            timer = GetNode<Timer>("Timer");
-
-        // Get the chosen candidate ID from the data
         string chosenCandidateId = data["candidate_id"].ToString();
 
-        // Find the rejected candidate (the other one)
-        string rejectedCandidateId = null;
-        foreach (var candidate in currentCandidates)
-        {
-            if (candidate.candidate_id != chosenCandidateId)
-            {
-                rejectedCandidateId = candidate.candidate_id;
-                break;
-            }
-        }
+        // Process candidate selection
+        GameManager.SelectCandidate(chosenCandidateId);
 
         // Convert tabs_viewed from Godot Array to string array with correct enum values
         var tabsViewed = new List<string>();
@@ -221,132 +77,94 @@ public partial class Main : Node
             }
         }
 
-        // Create the proper API data structure
-        var logData = new Godot.Collections.Dictionary {
-            {"player_id", "player_" + DateTime.Now.Ticks},
-            {"chosen_candidate_id", chosenCandidateId},
-            {"rejected_candidate_id", rejectedCandidateId},
-            {"position", data["candidate_position"].ToString()},
-            {"time_taken", timer != null ? timer.TimeLeft : 0},
-            {"tabs_viewed", new Godot.Collections.Array(tabsViewed.Select(tab => (Variant)tab).ToArray())},
-            {"round_number", currentRound}
-        };
+        // Create and send log data
+        var logData = ApiService.CreateLogData(
+            chosenCandidateId,
+            data["candidate_position"].ToString(),
+            _uiManager.GetTimeLeft(),
+            tabsViewed,
+            GameManager.CurrentRound
+        );
 
-        await SendLog(logData);
+        await ApiService.SendLogAsync(logData);
 
-        // Increment round for next choice
-        currentRound++;
+        // Add delay before next round
+        GD.Print("Processing your choice...");
+        await Task.Delay(1500);
+
+        // Check if round should advance
+        CheckRoundProgress();
     }
 
-    public async Task SendLog(Godot.Collections.Dictionary data)
+    private async void CheckRoundProgress()
     {
-        try
+        if (GameManager.CheckRoundComplete())
         {
-            // Convert Godot Dictionary → C# Dictionary<string, object>
-            var logData = new Dictionary<string, object>();
-
-            foreach (var key in data.Keys)
+            if (GameManager.IsGameComplete())
             {
-                GD.Print($"KEY = {key}, VALUE = {data[key]}");
-
-                var value = data[key];
-
-                switch (value.VariantType)
-                {
-                    case Variant.Type.String:
-                        logData[key.ToString()] = (string)value;
-                        break;
-
-                    case Variant.Type.Int:
-                        logData[key.ToString()] = (int)value;
-                        break;
-
-                    case Variant.Type.Array:
-                        var arr = (Godot.Collections.Array)value;
-
-                        // check if it's an array of strings
-                        var stringList = new List<string>();
-                        foreach (var item in arr)
-                            stringList.Add(item.ToString());
-
-                        logData[key.ToString()] = stringList.ToArray();
-                        break;
-
-                    case Variant.Type.Float:
-                        // store as double for JSON serializer compatibility
-                        logData[key.ToString()] = (double)value;
-                        break;
-
-                    default:
-                        logData[key.ToString()] = value.ToString();
-                        break;
-                }
-            }
-
-            // Serialize to JSON
-            var json = JsonSerializer.Serialize(logData, new JsonSerializerOptions
-            {
-                WriteIndented = false,
-                PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
-            });
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-            GD.Print($"Sending JSON: {json}");
-
-            var apiUrl = System.Environment.GetEnvironmentVariable("API_URL") ?? "http://localhost:5000";
-            var request = new HttpRequestMessage(HttpMethod.Post, $"{apiUrl}/api/choices")
-            {
-                Content = content
-            };
-
-            using var response = await SendWithRetry(request);
-
-            if (response.IsSuccessStatusCode)
-            {
-                GD.Print("Log sent successfully");
-                var responseContent = await response.Content.ReadAsStringAsync();
-                GD.Print($"Response: {responseContent}");
+                await EndGameAsync();
             }
             else
             {
-                GD.Print($"Failed to log data: {response.StatusCode}");
-                var errorContent = await response.Content.ReadAsStringAsync();
-                GD.Print($"Error response: {errorContent}");
+                GameManager.AdvanceRound();
+                await NewRound();
             }
         }
-        catch (HttpRequestException ex)
+        else
         {
-            GD.Print($"HTTP Request Exception: {ex.Message}");
-            GD.Print("This might be a network connectivity issue or API server is not running.");
-        }
-        catch (TaskCanceledException ex)
-        {
-            GD.Print($"Request Timeout: {ex.Message}");
-            GD.Print("The API request timed out. Check if the server is responding.");
-        }
-        catch (Exception ex)
-        {
-            GD.Print($"Unexpected error: {ex.Message}");
-            GD.Print($"Stack trace: {ex.StackTrace}");
+            GD.Print($"Round {GameManager.CurrentRound}: Selection made, continuing round...");
         }
     }
 
-    private async void OnTimeOut()
+    private async void OnTimeout()
     {
         GD.Print("Timeout: took too long");
 
-        // Update message label if available
-        if (_MessageLabel == null)
-            _MessageLabel = GetNodeOrNull<Label>("Text");
+        _uiManager.ShowTimeoutMessage();
 
-        if (_MessageLabel != null)
-            _MessageLabel.Text = "Time ran out";
+        // Log timeout event
+        var logData = ApiService.CreateTimeoutLogData(GameManager.CurrentRound);
+        await ApiService.SendLogAsync(logData);
 
-        // Build a small log dictionary and send it
-        var log = new Godot.Collections.Dictionary();
-        log["event"] = "timeout";
-        log["time_taken"] = 0;
+        // Check if round should advance
+        CheckRoundProgress();
+    }
 
-        await SendLog(log);
+    // This method is now handled by ApiService.CreateTimeoutLogData
+
+    // API logging is now handled by ApiService
+
+    private async Task EndGameAsync()
+    {
+        GD.Print("=== GAME COMPLETE ===");
+        GD.Print($"Total rounds played: {GameManager.MaxRounds}");
+        GD.Print("Thank you for playing!");
+
+        _roundManager.ClearAllResumes();
+        _uiManager.StopTimer();
+        _uiManager.ShowGameCompleteMessage();
+
+        GameManager.ResetGame();
+
+        // Optionally wait before starting a new game
+        await Task.Delay(3000);
+        
+        // Start new game automatically or wait for user input
+        GD.Print("Starting new game...");
+        NewGame();
+    }
+
+    public async Task NewRound()
+    {
+        GD.Print($"Starting round {GameManager.CurrentRound}");
+        
+        // Prepare candidates for this round
+        GameManager.PrepareRoundCandidates();
+        
+        // Start the timer
+        _uiManager.StartTimer();
+        
+        // Create and display resumes
+        await _roundManager.NewRoundAsync();
     }
 }
