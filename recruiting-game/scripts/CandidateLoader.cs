@@ -61,6 +61,7 @@ public partial class CandidateLoader : Node
     {
         return new CandidateData
         {
+            candidate_id = "DEFAULT001",
             candidateName = "Default Candidate",
             position = "Developer",
             gender = "Unknown",
@@ -74,6 +75,7 @@ public partial class CandidateLoader : Node
 
 public class CandidateData
 {
+    public string candidate_id { get; set; }
     public string candidateName { get; set; }
     public string position { get; set; }
     public string gender { get; set; }
