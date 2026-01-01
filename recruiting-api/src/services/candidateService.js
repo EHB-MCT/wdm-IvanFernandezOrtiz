@@ -46,4 +46,9 @@ export class CandidateService {
             .sort({ candidate_id: 1 })
             .limit(validLimit);
     }
+
+    static async createBatchCandidates(candidatesData) {
+        const savedCandidates = await Candidate.insertMany(candidatesData);
+        return savedCandidates;
+    }
 }

@@ -7,6 +7,7 @@ import {
 	deleteCandidate,
 	getCandidatesByPosition,
 	getCandidatesByGender,
+	createBatchCandidates,
 } from "../controllers/candidateController.js";
 import { validateCandidateInput, validateIdParam } from "../middleware/validation.js";
 
@@ -286,5 +287,59 @@ router.get("/position/:position", getCandidatesByPosition);
  *         description: Internal server error
  */
 router.get("/gender/:gender", getCandidatesByGender);
+
+/**
+ * @swagger
+ * /api/candidates/batch:
+ *   post:
+ *     summary: Create multiple candidates at once
+ *     description: Efficiently creates multiple candidates in a single request. Maximum 100 candidates per batch.
+ *     tags: [Candidates]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - candidates
+ *             properties:
+ *               candidates:
+ *                 type: array
+ *                 minItems: 1
+ *                 maxItems: 100
+ *                 items:
+ *                   $ref: '#/components/schemas/Candidate'
+ *                 description: Array of candidate entries to create
+ *     responses:
+ *       201:
+ *         description: Candidates created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: ok
+ *                 created:
+ *                   type: number
+ *                   description: Number of candidates created
+ *                   example: 50
+ *                 ids:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                   description: Array of created candidate IDs
+ *       400:
+ *         description: Bad request - validation failed or batch too large
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ */
+router.post("/batch", createBatchCandidates);
 
 export default router;

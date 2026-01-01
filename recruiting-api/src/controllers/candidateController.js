@@ -68,3 +68,28 @@ export const getCandidatesByGender = asyncHandler(async (req, res) => {
 	const candidates = await CandidateService.getCandidatesByGender(gender, limit);
 	res.json(candidates);
 });
+
+export const createBatchCandidates = asyncHandler(async (req, res) => {
+	const { candidates } = req.body;
+	
+	if (!Array.isArray(candidates)) {
+		return res.status(400).json({
+			error: "Invalid request body",
+			message: "candidates field must be an array",
+		});
+	}
+	
+	if (candidates.length === 0) {
+		return res.status(400).json({
+			error: "Invalid request body",
+			message: "candidates array cannot be empty",
+		});
+	}
+	
+	const savedCandidates = await CandidateService.createBatchCandidates(candidates);
+	res.status(201).json({ 
+		status: "ok", 
+		created: savedCandidates.length,
+		ids: savedCandidates.map(candidate => candidate._id)
+	});
+});
