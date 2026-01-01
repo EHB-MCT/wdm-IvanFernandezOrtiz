@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const CandidateSchema = new mongoose.Schema(
 	{
 		candidate_id: { type: String, required: true },
-		gender: { type: String, required: true, enum: ["male", "female", "other"] },
+		gender: { type: String, required: true, enum: ["Male", "Female", "Other"] },
 		position: { type: String, required: true },
 		education: { type: String, required: true },
 		workExperience: { type: String, required: true },
