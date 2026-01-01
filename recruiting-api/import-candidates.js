@@ -11,7 +11,7 @@ const importCandidates = async () => {
         await connectDatabase();
         
         // Read candidates from JSON file
-        const candidatesData = JSON.parse(fs.readFileSync("./recruiting-game/data/candidates.json", "utf8"));
+        const candidatesData = JSON.parse(fs.readFileSync("../recruiting-game/data/candidates.json", "utf8"));
         
         // Clear existing candidates
         await Candidate.deleteMany({});
