@@ -59,10 +59,10 @@ public partial class Resume : Control
         _chooseButton.Pressed += OnChooseButtonPressed;
 
         // Initialize skills display if Skills array is available
-        GD.Print($"Resume._Ready: Skills array length = {Skills?.Length ?? 0}");
-        GD.Print($"Resume._Ready: Skills content = {(Skills != null ? string.Join(", ", Skills) : "null")}");
-        GD.Print($"Resume._Ready: _skillsTab is null: {_skillsTab == null}");
-        
+        // GD.Print($"Resume._Ready: Skills array length = {Skills?.Length ?? 0}");
+        // GD.Print($"Resume._Ready: Skills content = {(Skills != null ? string.Join(", ", Skills) : "null")}");
+        // GD.Print($"Resume._Ready: _skillsTab is null: {_skillsTab == null}");
+
         if (Skills != null && _skillsTab != null && Skills.Length > 0)
         {
             // Clear existing skill labels
@@ -212,7 +212,7 @@ public partial class Resume : Control
         {
             GD.Print("Resume: UI nodes not ready yet, data will be displayed when _Ready() completes");
         }
-        
+
         // Ensure skills are displayed regardless of timing
         EnsureSkillsDisplayed();
     }
