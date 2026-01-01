@@ -2,6 +2,7 @@ using Godot;
 using System.Collections.Generic;
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 
 public static class GameManager
 {
@@ -19,17 +20,25 @@ public static class GameManager
         MaxRounds = 5;
     }
 
-    public static void LoadCandidates()
+    public static async Task LoadCandidatesAsync()
     {
-        CandidateLoader.LoadCandidates();
         AvailableCandidates = CandidateLoader.GetAllCandidates();
         if (AvailableCandidates == null || AvailableCandidates.Length == 0)
         {
             GD.PrintErr("No candidates loaded!");
         }
+        else
+        {
+            // Show available positions for debugging
+            var positions = AvailableCandidates
+                .GroupBy(c => c.position)
+                .Select(g => $"{g.Key} ({g.Count()} candidates)")
+                .ToList();
+            GD.Print($"Available positions: {string.Join(", ", positions)}");
+        }
     }
 
-    public static void PrepareRoundCandidates()
+    public static async Task PrepareRoundCandidates()
     {
         if (CurrentRound > MaxRounds)
         {
@@ -40,7 +49,7 @@ public static class GameManager
 
         if (AvailableCandidates == null || AvailableCandidates.Length == 0)
         {
-            LoadCandidates();
+            await LoadCandidatesAsync();
         }
 
         if (AvailableCandidates == null || AvailableCandidates.Length == 0)
@@ -49,24 +58,56 @@ public static class GameManager
             return;
         }
 
-        // Create exactly 2 random candidates for this round
-        int resumeCount = Math.Min(2, AvailableCandidates.Length);
-        var usedIndices = new HashSet<int>();
-        CurrentCandidates = new CandidateData[resumeCount];
+        // Group candidates by position
+        var positionGroups = AvailableCandidates
+            .GroupBy(c => c.position)
+            .Where(g => g.Count() >= 2) // Only consider positions with at least 2 candidates
+            .ToList();
 
-        for (int i = 0; i < resumeCount; i++)
+        if (positionGroups.Count == 0)
         {
-            int randomIndex;
-            do
+            GD.PrintErr("No positions with at least 2 candidates available!");
+            // Fallback to random selection if no similar pairs exist
+            int resumeCount = Math.Min(2, AvailableCandidates.Length);
+            var usedIndices = new HashSet<int>();
+            CurrentCandidates = new CandidateData[resumeCount];
+
+            for (int i = 0; i < resumeCount; i++)
             {
-                randomIndex = _random.Next(AvailableCandidates.Length);
-            } while (usedIndices.Contains(randomIndex));
+                int randomIndex;
+                do
+                {
+                    randomIndex = _random.Next(AvailableCandidates.Length);
+                } while (usedIndices.Contains(randomIndex));
 
-            usedIndices.Add(randomIndex);
-            CurrentCandidates[i] = AvailableCandidates[randomIndex];
+                usedIndices.Add(randomIndex);
+                CurrentCandidates[i] = AvailableCandidates[randomIndex];
+            }
         }
+        else
+        {
+            // Select a random position group that has at least 2 candidates
+            var selectedGroup = positionGroups[_random.Next(positionGroups.Count)];
+            var candidatesInPosition = selectedGroup.ToList();
 
-        GD.Print($"Prepared {resumeCount} candidates for round {CurrentRound}");
+            // Randomly select 2 candidates from the same position
+            var selectedIndices = new HashSet<int>();
+            CurrentCandidates = new CandidateData[2];
+
+            for (int i = 0; i < 2; i++)
+            {
+                int randomIndex;
+                do
+                {
+                    randomIndex = _random.Next(candidatesInPosition.Count);
+                } while (selectedIndices.Contains(randomIndex));
+
+                selectedIndices.Add(randomIndex);
+                CurrentCandidates[i] = candidatesInPosition[randomIndex];
+            }
+
+            // GD.Print($"Prepared 2 {selectedGroup.Key} candidates for round {CurrentRound}");
+        }
     }
 
     public static void SelectCandidate(string chosenCandidateId)
@@ -89,7 +130,7 @@ public static class GameManager
                 var candidateList = CurrentCandidates.ToList();
                 candidateList.Add(comebackCandidate);
                 CurrentCandidates = candidateList.ToArray();
-                GD.Print($"Candidate {chosenCandidate.candidateName} may come back in future rounds");
+                // GD.Print($"Candidate {chosenCandidate.candidateName} may come back in future rounds");
             }
         }
     }
@@ -106,11 +147,11 @@ public static class GameManager
         return usedCandidateIds.Count >= 2;
     }
 
-    public static void AdvanceRound()
+    public static async void AdvanceRound()
     {
         CurrentRound++;
         GD.Print($"Round {CurrentRound - 1} complete! Starting round {CurrentRound}");
-        PrepareRoundCandidates();
+        await PrepareRoundCandidates();
     }
 
     public static bool IsGameComplete()

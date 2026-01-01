@@ -177,4 +177,69 @@ public static class ApiService
             {"round_number", roundNumber}
         };
     }
+
+    public static async Task<bool> SendCandidatesBatchAsync(Godot.Collections.Dictionary candidatesData)
+    {
+        try
+        {
+            GD.Print("Sending candidates batch to API...");
+            
+            var json = JsonSerializer.Serialize(candidatesData, new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
+            
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+            var response = await client.PostAsync($"{GetApiUrl()}/api/candidates/batch", content);
+            
+            if (response.IsSuccessStatusCode)
+            {
+                GD.Print($"Successfully sent candidates batch: {response.StatusCode}");
+                return true;
+            }
+            else
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                GD.PrintErr($"Failed to send candidates batch. Status: {response.StatusCode}, Error: {errorContent}");
+                return false;
+            }
+        }
+        catch (Exception ex)
+        {
+            GD.PrintErr($"Exception when sending candidates batch: {ex.Message}");
+            return false;
+        }
+    }
+
+    public static async Task<List<CandidateData>> GetAllCandidatesAsync()
+    {
+        try
+        {
+            GD.Print("Fetching all candidates from API...");
+            
+            var response = await client.GetAsync($"{GetApiUrl()}/api/candidates");
+            
+            if (response.IsSuccessStatusCode)
+            {
+                var jsonContent = await response.Content.ReadAsStringAsync();
+                var candidates = JsonSerializer.Deserialize<List<CandidateData>>(jsonContent, new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                });
+                
+                GD.Print($"Successfully fetched {candidates?.Count ?? 0} candidates from API");
+                return candidates ?? new List<CandidateData>();
+            }
+            else
+            {
+                GD.PrintErr($"Failed to fetch candidates from API. Status: {response.StatusCode}");
+                return null;
+            }
+        }
+        catch (Exception ex)
+        {
+            GD.PrintErr($"Exception when fetching candidates from API: {ex.Message}");
+            return null;
+        }
+    }
 }
