@@ -13,7 +13,7 @@ public partial class UIManager : Node
         _TimeLeftLabel = parentNode.GetNode<Label>("TimeLeft");
         _timer = parentNode.GetNode<Timer>("Timer");
         
-        GD.Print($"UIManager initialized - MessageLabel: {(_MessageLabel != null ? "found" : "not found")}, TimeLeft: {(_TimeLeftLabel != null ? "found" : "not found")}, Timer: {(_timer != null ? "found" : "not found")}");
+        // GD.Print($"UIManager initialized - MessageLabel: {(_MessageLabel != null ? "found" : "not found")}, TimeLeft: {(_TimeLeftLabel != null ? "found" : "not found")}, Timer: {(_timer != null ? "found" : "not found")}");
     }
 
     public void UpdateTimerDisplay()
@@ -27,11 +27,11 @@ public partial class UIManager : Node
 
     public void SetMessage(string message)
     {
-        GD.Print($"UIManager: Setting message to '{message}'");
+        // GD.Print($"UIManager: Setting message to '{message}'");
         if (_MessageLabel != null)
         {
             _MessageLabel.Text = message;
-            GD.Print($"UIManager: MessageLabel updated successfully");
+            // GD.Print($"UIManager: MessageLabel updated successfully");
         }
         else
         {
@@ -62,6 +62,24 @@ public partial class UIManager : Node
         if (_timer != null)
         {
             _timer.Stop();
+        }
+    }
+
+    public void FreezeTimer()
+    {
+        if (_timer != null && _timer.TimeLeft > 0)
+        {
+            _timer.Paused = true;
+            // GD.Print("Timer frozen - candidate choice being processed");
+        }
+    }
+
+    public void UnfreezeTimer()
+    {
+        if (_timer != null)
+        {
+            _timer.Paused = false;
+            // GD.Print("Timer unfrozen - continuing round");
         }
     }
 

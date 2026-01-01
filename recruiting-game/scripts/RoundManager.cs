@@ -59,9 +59,9 @@ public partial class RoundManager : Node
             ConfigureResume(resumeInstance, candidate);
         }
 
-        GD.Print($"Round {GameManager.CurrentRound} started with {resumeCount} candidates");
+        // GD.Print($"Round {GameManager.CurrentRound} started with {resumeCount} candidates");
         await Task.Delay(1000);
-        GD.Print("Candidates are ready! Make your selection...");
+        // GD.Print("Candidates are ready! Make your selection...");
     }
 
     private void ClearCurrentResumes()
@@ -90,7 +90,7 @@ public partial class RoundManager : Node
         if (targetMarker != null)
         {
             resume.Position = targetMarker.Position;
-            GD.Print($"Resume {index + 1} positioned at marker: {targetMarker.Name} at position {targetMarker.Position}");
+            // GD.Print($"Resume {index + 1} positioned at marker: {targetMarker.Name} at position {targetMarker.Position}");
         }
         else
         {

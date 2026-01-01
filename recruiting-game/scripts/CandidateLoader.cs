@@ -1,13 +1,50 @@
 using Godot;
 using System;
 using System.Text.Json;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using System.Linq;
 
 public partial class CandidateLoader : Node
 {
     private static CandidateData[] _candidates;
     private static Random _random = new Random();
 
-    public static void LoadCandidates()
+    public static async Task LoadCandidatesAsync()
+    {
+        try
+        {
+            GD.Print("Loading candidates from API...");
+            
+            // First try to load from API
+            var candidates = await ApiService.GetAllCandidatesAsync();
+            
+            if (candidates != null && candidates.Count > 0)
+            {
+                _candidates = candidates.ToArray();
+                GD.Print($"Successfully loaded {_candidates.Length} candidates from API");
+                
+                // Show position distribution for debugging
+                var positionCounts = _candidates
+                    .GroupBy(c => c.position)
+                    .Select(g => $"{g.Key} ({g.Count()})");
+                GD.Print($"Position distribution: {string.Join(", ", positionCounts)}");
+                
+                return;
+            }
+            
+            GD.Print("API load failed, falling back to local JSON file...");
+            await LoadFromLocalFileAsync();
+        }
+        catch (Exception ex)
+        {
+            GD.PrintErr($"Error loading candidates from API: {ex.Message}");
+            GD.Print("Falling back to local JSON file...");
+            await LoadFromLocalFileAsync();
+        }
+    }
+
+    private static async Task LoadFromLocalFileAsync()
     {
         try
         {
@@ -22,20 +59,11 @@ public partial class CandidateLoader : Node
             file.Close();
 
             _candidates = JsonSerializer.Deserialize<CandidateData[]>(jsonString);
-            GD.Print($"Loaded {_candidates?.Length ?? 0} candidates");
-
-            if (_candidates != null && _candidates.Length > 0)
-            {
-                for (int i = 0; i < Math.Min(3, _candidates.Length); i++)
-                {
-                    var candidate = _candidates[i];
-                    GD.Print($"Candidate {i}: {candidate.candidateName}, Skills: {string.Join(", ", candidate.skills ?? new string[0])}");
-                }
-            }
+            GD.Print($"Loaded {_candidates?.Length ?? 0} candidates from local file");
         }
         catch (Exception ex)
         {
-            GD.PrintErr($"Error loading candidates: {ex.Message}");
+            GD.PrintErr($"Error loading local candidates: {ex.Message}");
         }
     }
 

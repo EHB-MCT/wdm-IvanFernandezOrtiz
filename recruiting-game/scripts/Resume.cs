@@ -77,7 +77,7 @@ public partial class Resume : Control
                 var skillLabel = new Label();
                 skillLabel.Text = Skills[i];
                 _skillsTab.AddChild(skillLabel);
-                GD.Print($"Resume._Ready: Added skill label: {Skills[i]}");
+                // GD.Print($"Resume._Ready: Added skill label: {Skills[i]}");
             }
         }
         else
@@ -160,7 +160,7 @@ public partial class Resume : Control
                 var skillLabel = new Label();
                 skillLabel.Text = Skills[i];
                 _skillsTab.AddChild(skillLabel);
-                GD.Print($"EnsureSkillsDisplayed: Added skill label: {Skills[i]}");
+                // GD.Print($"EnsureSkillsDisplayed: Added skill label: {Skills[i]}");
             }
         }
         else
@@ -175,7 +175,7 @@ public partial class Resume : Control
     public void SetResumeData(string candidateId, string candidateName, string position, string gender,
         string education, string[] skills, string picturePath, string workExperience)
     {
-        GD.Print($"SetResumeData called with skills: {(skills != null ? string.Join(", ", skills) : "null")}");
+        // GD.Print($"SetResumeData called with skills: {(skills != null ? string.Join(", ", skills) : "null")}");
 
         CandidateId = candidateId ?? "UNKNOWN001";
         CandidateName = candidateName ?? "Unknown Candidate";
@@ -186,7 +186,7 @@ public partial class Resume : Control
         // Set skills array
         Skills = skills ?? new string[0];
 
-        GD.Print($"SetResumeData: Skills set to: {string.Join(", ", Skills)}");
+        // GD.Print($"SetResumeData: Skills set to: {string.Join(", ", Skills)}");
 
         WorkExperience = workExperience ?? "No Experience";
 
@@ -206,7 +206,7 @@ public partial class Resume : Control
         if (_nameLabel != null)
         {
             RefreshUI();
-            GD.Print("Resume: Refreshed UI with new data");
+            // GD.Print("Resume: Refreshed UI with new data");
         }
         else
         {
