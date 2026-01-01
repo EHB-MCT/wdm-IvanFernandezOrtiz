@@ -121,7 +121,7 @@ public static class ApiService
 
         foreach (var key in data.Keys)
         {
-            GD.Print($"KEY = {key}, VALUE = {data[key]}");
+            // GD.Print($"KEY = {key}, VALUE = {data[key]}");
 
             var value = data[key];
 
