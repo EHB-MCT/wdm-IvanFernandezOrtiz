@@ -1,5 +1,5 @@
 import dotenv from "dotenv";
-import { connectDatabase } from "./src/config/database.js";
+import { connectDatabase } from "./src/config/app/database.js";
 import CandidateGenerator from "./src/services/candidateGeneratorService.js";
 import Candidate from "./src/models/Candidate.js";
 

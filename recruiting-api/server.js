@@ -1,12 +1,12 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import { connectDatabase } from "./src/config/database.js";
-import { swaggerUi, specs } from "./src/config/swagger.js";
+import { connectDatabase } from "./src/config/app/database.js";
+import { swaggerUi, specs } from "./src/config/app/swagger.js";
 import { errorHandler, notFoundHandler } from "./src/middleware/errorHandler.js";
 import candidateRoutes from "./src/routes/candidateRoutes.js";
 import choiceRoutes from "./src/routes/choiceRoutes.js";
-import { config, validateConfig } from "./src/config/config.js";
+import { config, validateConfig } from "./src/config/app/config.js";
 
 // Load environment variables
 dotenv.config();
