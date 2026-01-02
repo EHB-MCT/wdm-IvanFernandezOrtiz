@@ -1,0 +1,27 @@
+{
+  "firstNames": [
+    "John", "Jane", "Michael", "Sarah", "David", "Emily", "Robert", "Lisa", 
+    "James", "Mary", "William", "Jennifer", "Richard", "Linda", "Joseph", "Patricia",
+    "Thomas", "Jessica", "Charles", "Ashley", "Christopher", "Amanda", "Daniel", "Melissa",
+    "Matthew", "Deborah", "Anthony", "Stephanie", "Mark", "Rebecca", "Steven", "Laura",
+    "Paul", "Sharon", "Andrew", "Cynthia", "Joshua", "Kathy", "Kevin", "Amy",
+    "Brian", "Angela", "George", "Brenda", "Edward", "Pamela", "Ronald", "Nicole",
+    "Timothy", "Katherine", "Jason", "Samantha", "Jeffrey", "Christine", "Ryan", "Rachel",
+    "Jacob", "Megan", "Gary", "Tiffany", "Nicholas", "Virginia", "Eric", "Benjamin"
+  ],
+  "lastNames": [
+    "Smith", "Johnson", "Williams", "Brown", "Jones", "Miller", "Davis", "Garcia",
+    "Rodriguez", "Wilson", "Martinez", "Anderson", "Taylor", "Thomas", "Moore", "Jackson",
+    "Martin", "Lee", "Thompson", "White", "Harris", "Clark", "Lewis", "Robinson",
+    "Walker", "Hall", "Allen", "Young", "King", "Scott", "Green", "Adams",
+    "Baker", "Nelson", "Carter", "Mitchell", "Roberts", "Turner", "Phillips", "Campbell",
+    "Parker", "Evans", "Edwards", "Collins", "Stewart", "Sanchez", "Morris", "Morris",
+    "Rogers", "Reed", "Cook", "Morgan", "Bell", "Murphy", "Bailey", "Rivera",
+    "Cooper", "Richardson", "Cox", "Howard", "Ward", "Torrance", "Peterson", "Gray"
+  ],
+  "genders": ["Male", "Female", "Other"],
+  "avatarPaths": [
+    "res://assets/icon.svg",
+    "res://assets/icon2.svg"
+  ]
+}
