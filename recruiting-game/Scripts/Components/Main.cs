@@ -39,7 +39,7 @@ public partial class Main : Node
     {
         // Test API connectivity
         var isConnected = await ApiService.TestConnectionAsync();
-        
+
         if (isConnected)
         {
             GD.Print("API connected successfully. Loading candidates from database...");
@@ -48,12 +48,18 @@ public partial class Main : Node
         {
             GD.Print("API connection failed. Using local fallback candidates.");
         }
-        
+
         // Load candidates from API (with local fallback)
         await CandidateLoader.LoadCandidatesAsync();
-        
+
         // Start the game
-        NewGame();
+        // NewGame();
+    }
+
+    private async void StartGame()
+    {
+        _uiManager.StartGamePressed();
+        GenerateAndStartNewGame();
     }
 
     private async void NewGame()
@@ -62,6 +68,52 @@ public partial class Main : Node
         GameManager.Initialize();
         await GameManager.LoadCandidatesAsync();
         await NewRound();
+    }
+
+    private async void GenerateAndStartNewGame()
+    {
+        GD.Print("Generating new candidates for game...");
+
+        try
+        {
+            // Generate a seed for reproducible randomness
+            var seed = System.DateTime.Now.Millisecond;
+            GD.Print($"Using seed: {seed} for candidate generation");
+
+            // Clear existing candidates first
+            var cleared = await ApiService.ClearCandidatesAsync();
+            if (!cleared)
+            {
+                GD.PrintErr("Failed to clear existing candidates");
+                _uiManager.SetMessage("Failed to clear candidates");
+                return;
+    }
+
+            // Generate new random candidates (100 by default, with seed)
+            var generated = await ApiService.GenerateCandidatesAsync(100, seed);
+            if (!generated)
+            {
+                GD.PrintErr("Failed to generate candidates");
+                _uiManager.SetMessage("Failed to generate candidates");
+                return;
+            }
+
+            GD.Print("Candidates generated successfully! Starting new game...");
+
+            // Load the newly generated candidates
+            await CandidateLoader.LoadCandidatesAsync();
+
+            // Initialize GameManager with the seed for consistent randomization
+            GameManager.SetSeed(seed);
+
+            // Start the actual game
+            NewGame();
+        }
+        catch (System.Exception ex)
+        {
+            GD.PrintErr($"Error in GenerateAndStartNewGame: {ex.Message}");
+            _uiManager.SetMessage("Failed to start game");
+        }
     }
 
     public override void _Process(double delta)
@@ -80,8 +132,8 @@ public partial class Main : Node
         // Freeze the timer while processing the choice
         _uiManager.FreezeTimer();
 
-        // Process candidate selection
-        GameManager.SelectCandidate(chosenCandidateId);
+        // Process candidate selection and get rejected candidate
+        var rejectedCandidateId = GameManager.SelectCandidate(chosenCandidateId);
 
         // Convert tabs_viewed from Godot Array to string array with correct enum values
         var tabsViewed = new List<string>();
@@ -102,6 +154,7 @@ public partial class Main : Node
         // Create and send log data
         var logData = ApiService.CreateLogData(
             chosenCandidateId,
+            rejectedCandidateId,
             data["candidate_position"].ToString(),
             _uiManager.GetTimeLeft(),
             tabsViewed,
@@ -185,13 +238,14 @@ public partial class Main : Node
 
     public async Task NewRound()
     {
-        // GD.Print($"Starting round {GameManager.CurrentRound}");
+        GD.Print($"Starting round {GameManager.CurrentRound}");
 
         // Prepare candidates for this round
         GameManager.PrepareRoundCandidates();
 
         // Start the timer
         _uiManager.StartTimer();
+        _uiManager.setRoundMessage();
 
         // Create and display resumes
         await _roundManager.NewRoundAsync();

@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://l8i24tsvh1jg"]
 
-[ext_resource type="Script" uid="uid://cicqbc5ubuif6" path="res://scripts/Main.cs" id="1_jyhfs"]
+[ext_resource type="Script" uid="uid://bfcrrsg71lonw" path="res://Scripts/Components/Main.cs" id="1_jyhfs"]
 
 [node name="Main" type="Node"]
 script = ExtResource("1_jyhfs")
@@ -36,10 +36,36 @@ offset_bottom = 56.0
 theme_override_font_sizes/font_size = 20
 text = "500"
 
+[node name="RoundLabel" type="Label" parent="."]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -65.0
+offset_top = 29.0
+offset_right = -25.0
+offset_bottom = 52.0
+grow_horizontal = 0
+text = "Round null"
+
 [node name="Option1" type="Marker2D" parent="."]
 position = Vector2(139, 149)
 
 [node name="Option2" type="Marker2D" parent="."]
 position = Vector2(685, 149)
 
+[node name="StartButton" type="Button" parent="."]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -92.0
+offset_top = -115.0
+offset_right = 92.0
+offset_bottom = -84.0
+grow_horizontal = 2
+grow_vertical = 0
+text = "Play"
+
 [connection signal="timeout" from="Timer" to="." method="OnTimeOut"]
+[connection signal="pressed" from="StartButton" to="." method="StartGame"]

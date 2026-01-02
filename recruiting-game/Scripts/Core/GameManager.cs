@@ -10,7 +10,7 @@ public static class GameManager
     public static CandidateData[] CurrentCandidates { get; private set; }
     public static CandidateData[] AvailableCandidates { get; private set; }
     public static int MaxRounds { get; private set; } = 5;
-    private static readonly Random _random = new Random();
+    private static Random _random = new Random();
 
     public static void Initialize()
     {
@@ -18,6 +18,12 @@ public static class GameManager
         CurrentCandidates = null;
         AvailableCandidates = null;
         MaxRounds = 5;
+    }
+
+    public static void SetSeed(int seed)
+    {
+        _random = new Random(seed);
+        GD.Print($"GameManager seeded with: {seed}");
     }
 
     public static async Task LoadCandidatesAsync()
@@ -110,14 +116,22 @@ public static class GameManager
         }
     }
 
-    public static void SelectCandidate(string chosenCandidateId)
+    public static string SelectCandidate(string chosenCandidateId)
     {
         if (CurrentCandidates == null)
-            return;
+            return null;
 
+        var rejectedCandidateId = "";
         var chosenCandidate = CurrentCandidates.FirstOrDefault(c => c.candidate_id == chosenCandidateId);
         if (chosenCandidate != null)
         {
+            // Get the rejected candidate ID (the other candidate in the pair)
+            var rejectedCandidate = CurrentCandidates.FirstOrDefault(c => c.candidate_id != chosenCandidateId);
+            if (rejectedCandidate != null)
+            {
+                rejectedCandidateId = rejectedCandidate.candidate_id;
+            }
+
             // Move chosen candidate to used candidates
             CurrentCandidates = CurrentCandidates.Where(c => c.candidate_id != chosenCandidateId).ToArray();
 
@@ -133,6 +147,8 @@ public static class GameManager
                 // GD.Print($"Candidate {chosenCandidate.candidateName} may come back in future rounds");
             }
         }
+
+        return rejectedCandidateId;
     }
 
     public static bool CheckRoundComplete()
