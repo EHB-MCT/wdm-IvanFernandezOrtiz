@@ -80,7 +80,7 @@ export class ChoiceService {
             .slice(0, 10)
             .map(([position, count]) => ({ position, count }));
 
-        return {
+return {
             totalChoices,
             averageTimeTaken: Math.round(averageTimeTaken * 100) / 100,
             uniquePlayerCount: uniquePlayers.size,
@@ -88,5 +88,9 @@ export class ChoiceService {
             mostViewedTabs: tabCounts,
             popularPositions
         };
+    }
+
+    static async clearAllChoices() {
+        return await PlayerChoices.deleteMany({});
     }
 }

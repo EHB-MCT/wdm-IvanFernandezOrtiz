@@ -93,3 +93,55 @@ export const createBatchCandidates = asyncHandler(async (req, res) => {
 		ids: savedCandidates.map(candidate => candidate._id)
 	});
 });
+
+export const clearAllCandidates = asyncHandler(async (req, res) => {
+	const result = await CandidateService.clearAllCandidates();
+	res.json({ 
+		status: "ok", 
+		deleted: result.deletedCount,
+		message: `Successfully deleted ${result.deletedCount} candidates`
+	});
+});
+
+export const generateCandidates = asyncHandler(async (req, res) => {
+	try {
+		const { count = 100, seed = null } = req.query;
+		
+		// Import and use template engine
+		const CandidateTemplateEngine = (await import("../services/candidateTemplateEngine.js")).default;
+		const templateEngine = new CandidateTemplateEngine();
+		
+		// Set seed if provided for reproducible generation
+		if (seed) {
+			templateEngine.setSeed(parseInt(seed));
+		}
+		
+		await templateEngine.initialize();
+		
+		// Generate all candidates (template engine handles count via config)
+		const allCandidates = await templateEngine.generateAllCandidates();
+		
+		// If specific count requested, slice the array
+		const candidates = count && count < allCandidates.length 
+			? allCandidates.slice(0, parseInt(count)) 
+			: allCandidates;
+		
+		// Save candidates to database
+		const savedCandidates = await CandidateService.createBatchCandidates(candidates);
+		
+		res.json({
+			status: "ok",
+			generated: savedCandidates.length,
+			requested: parseInt(count) || allCandidates.length,
+			seed: seed || "random",
+			candidates: savedCandidates
+		});
+	} catch (error) {
+		console.error("Generation error:", error);
+		res.status(500).json({
+			error: "Failed to generate candidates",
+			message: error.message
+		});
+	}
+});
+

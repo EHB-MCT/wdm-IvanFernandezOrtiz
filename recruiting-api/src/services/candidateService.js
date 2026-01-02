@@ -51,4 +51,8 @@ export class CandidateService {
         const savedCandidates = await Candidate.insertMany(candidatesData);
         return savedCandidates;
     }
+
+    static async clearAllCandidates() {
+        return await Candidate.deleteMany({});
+    }
 }
