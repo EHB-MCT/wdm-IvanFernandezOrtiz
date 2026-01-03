@@ -1,4 +1,4 @@
-import PlayerChoices from "../models/PlayerChoices.js";
+
 import Candidate from "../models/Candidate.js";
 import { validateLimit, validateOffset } from "../utils/responseHelpers.js";
 
