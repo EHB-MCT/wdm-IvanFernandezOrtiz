@@ -1,13 +1,20 @@
 {
-  "firstNames": [
-    "John", "Jane", "Michael", "Sarah", "David", "Emily", "Robert", "Lisa", 
-    "James", "Mary", "William", "Jennifer", "Richard", "Linda", "Joseph", "Patricia",
-    "Thomas", "Jessica", "Charles", "Ashley", "Christopher", "Amanda", "Daniel", "Melissa",
-    "Matthew", "Deborah", "Anthony", "Stephanie", "Mark", "Rebecca", "Steven", "Laura",
-    "Paul", "Sharon", "Andrew", "Cynthia", "Joshua", "Kathy", "Kevin", "Amy",
-    "Brian", "Angela", "George", "Brenda", "Edward", "Pamela", "Ronald", "Nicole",
-    "Timothy", "Katherine", "Jason", "Samantha", "Jeffrey", "Christine", "Ryan", "Rachel",
-    "Jacob", "Megan", "Gary", "Tiffany", "Nicholas", "Virginia", "Eric", "Benjamin"
+  "maleFirstNames": [
+    "John", "Michael", "David", "Robert", "James", "William", "Richard", "Joseph",
+    "Thomas", "Charles", "Christopher", "Daniel", "Matthew", "Anthony", "Mark",
+    "Steven", "Paul", "Andrew", "Joshua", "Kevin", "Brian", "George", "Edward",
+    "Ronald", "Timothy", "Jason", "Jeffrey", "Ryan", "Jacob", "Gary", "Nicholas",
+    "Eric", "Jonathan", "Stephen", "Larry", "Justin", "Scott", "Brandon", "Benjamin",
+    "Samuel", "Gregory", "Frank", "Alexander", "Patrick", "Raymond", "Jack", "Dennis",
+    "Jerry", "Tyler", "Aaron", "Henry", "Carlos", "Jose", "Adam", "Nathan", "Peter"
+  ],
+  "femaleFirstNames": [
+    "Jane", "Sarah", "Emily", "Lisa", "Mary", "Jennifer", "Linda", "Patricia",
+    "Jessica", "Ashley", "Amanda", "Melissa", "Deborah", "Stephanie", "Rebecca", "Laura",
+    "Sharon", "Angela", "Brenda", "Pamela", "Nicole", "Katherine", "Samantha", "Christine",
+    "Rachel", "Megan", "Tiffany", "Virginia", "Amy", "Kathy", "Cynthia", "Christina",
+    "Betty", "Sandra", "Donna", "Carol", "Ruth", "Sharon", "Michelle", "Laura", "Sarah",
+    "Kimberly", "Deborah", "Dorothy", "Nancy", "Karen", "Lisa", "Betty", "Helen"
   ],
   "lastNames": [
     "Smith", "Johnson", "Williams", "Brown", "Jones", "Miller", "Davis", "Garcia",
