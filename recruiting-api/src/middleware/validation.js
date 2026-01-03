@@ -194,7 +194,64 @@ export const validateIdParam = (paramName = "id") => {
 				message: `${paramName} is required and must be a string`,
 			});
 		}
-
+		
 		next();
 	};
+};
+
+export const validateSessionChoice = (req, res, next) => {
+	const {
+		round_number,
+		chosen_candidate_id,
+		rejected_candidate_id,
+		position,
+		tabs_viewed,
+		time_taken,
+	} = req.body;
+	
+	const errors = [];
+	
+	if (!chosen_candidate_id || typeof chosen_candidate_id !== "string") {
+		errors.push("chosen_candidate_id is required and must be a string");
+	}
+	
+	if (!rejected_candidate_id || typeof rejected_candidate_id !== "string") {
+		errors.push("rejected_candidate_id is required and must be a string");
+	}
+	
+	if (!position || typeof position !== "string") {
+		errors.push("position is required and must be a string");
+	}
+	
+	if (!tabs_viewed || !Array.isArray(tabs_viewed)) {
+		errors.push("tabs_viewed is required and must be an array");
+	} else {
+		const invalidTabs = tabs_viewed.filter(tab => !TAB_TYPES.includes(tab));
+		if (invalidTabs.length > 0) {
+			errors.push(`Invalid tabs_viewed values: ${invalidTabs.join(", ")}. Must be one of: ${TAB_TYPES.join(", ")}`);
+		}
+	}
+	
+	if (time_taken === undefined || typeof time_taken !== "number") {
+		errors.push("time_taken is required and must be a number");
+	} else if (!Number.isFinite(time_taken)) {
+		errors.push("time_taken must be a valid finite number");
+	} else if (time_taken < 0) {
+		errors.push("time_taken cannot be negative");
+	}
+	
+	if (round_number === undefined || typeof round_number !== "number") {
+		errors.push("round_number is required and must be a number");
+	} else if (!Number.isInteger(round_number) || round_number < 1 || round_number > 10) {
+		errors.push("round_number must be a positive integer between 1 and 10");
+	}
+	
+	if (errors.length > 0) {
+		return res.status(400).json({
+			error: "Validation failed",
+			details: errors,
+		});
+	}
+	
+	next();
 };
