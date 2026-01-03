@@ -62,3 +62,12 @@ export const getChoiceAnalytics = asyncHandler(async (req, res) => {
 	const analytics = await ChoiceService.getChoiceAnalytics();
 	res.json(analytics);
 });
+
+export const clearAllChoices = asyncHandler(async (req, res) => {
+	const result = await ChoiceService.clearAllChoices();
+	res.json({ 
+		status: "ok", 
+		deleted: result.deletedCount,
+		message: `Successfully deleted ${result.deletedCount} choices`
+	});
+});

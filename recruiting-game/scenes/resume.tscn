@@ -1,7 +1,7 @@
 [gd_scene load_steps=4 format=3 uid="uid://blweffwkmqcud"]
 
-[ext_resource type="Script" uid="uid://dtnqa7i3auyu6" path="res://scripts/Resume.cs" id="1_g7n6h"]
-[ext_resource type="Texture2D" uid="uid://dc4qwxkxnkv6r" path="res://assets/icon.svg" id="2_wc3a8"]
+[ext_resource type="Script" uid="uid://b1bwq6dp10y8o" path="res://Scripts/Components/Resume.cs" id="1_g7n6h"]
+[ext_resource type="Texture2D" uid="uid://8nhvoaypwsq6" path="res://Assets/icon.svg" id="2_wc3a8"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dc88f"]
 content_margin_left = 20.0
@@ -47,10 +47,11 @@ layout_mode = 2
 theme_override_constants/side_margin = 0
 theme_override_styles/panel = SubResource("StyleBoxFlat_dc88f")
 tab_alignment = 2
-current_tab = 0
+current_tab = 3
 tabs_rearrange_group = 0
 
 [node name="Profile" type="VBoxContainer" parent="VBoxContainer/TabContainer"]
+visible = false
 layout_mode = 2
 metadata/_tab_index = 0
 
@@ -60,12 +61,42 @@ texture = ExtResource("2_wc3a8")
 stretch_mode = 4
 
 [node name="Upbringing" type="Label" parent="VBoxContainer/TabContainer/Profile"]
+visible = false
 layout_mode = 2
 text = "Upbringing"
 
-[node name="Gender" type="Label" parent="VBoxContainer/TabContainer/Profile"]
+[node name="Gender" type="HBoxContainer" parent="VBoxContainer/TabContainer/Profile"]
 layout_mode = 2
-text = "Gender"
+
+[node name="GenderLabel" type="Label" parent="VBoxContainer/TabContainer/Profile/Gender"]
+layout_mode = 2
+text = "Gender: "
+
+[node name="GenderValue" type="Label" parent="VBoxContainer/TabContainer/Profile/Gender"]
+layout_mode = 2
+text = "GenderValue"
+
+[node name="Age" type="HBoxContainer" parent="VBoxContainer/TabContainer/Profile"]
+layout_mode = 2
+
+[node name="AgeLabel" type="Label" parent="VBoxContainer/TabContainer/Profile/Age"]
+layout_mode = 2
+text = "Age: "
+
+[node name="AgeValue" type="Label" parent="VBoxContainer/TabContainer/Profile/Age"]
+layout_mode = 2
+text = "AgeValue"
+
+[node name="Origin" type="HBoxContainer" parent="VBoxContainer/TabContainer/Profile"]
+layout_mode = 2
+
+[node name="OriginLabel" type="Label" parent="VBoxContainer/TabContainer/Profile/Origin"]
+layout_mode = 2
+text = "Origin: "
+
+[node name="OriginValue" type="Label" parent="VBoxContainer/TabContainer/Profile/Origin"]
+layout_mode = 2
+text = "OriginValue"
 
 [node name="Education" type="VBoxContainer" parent="VBoxContainer/TabContainer"]
 visible = false
@@ -87,8 +118,8 @@ theme_override_constants/separation = 16
 metadata/_tab_index = 2
 
 [node name="Work" type="VBoxContainer" parent="VBoxContainer/TabContainer"]
-visible = false
 layout_mode = 2
+theme_override_constants/separation = 16
 metadata/_tab_index = 3
 
 [node name="Work" type="Label" parent="VBoxContainer/TabContainer/Work"]
