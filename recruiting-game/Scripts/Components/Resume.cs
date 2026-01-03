@@ -13,6 +13,8 @@ public partial class Resume : Control
     [Export] public string CandidateName;
     [Export] public string CandidatePosition;
     [Export] public string Gender;
+    [Export] public int Age;
+    [Export] public string Race;
     [Export] public string Education;
     [Export] public string[] Skills;
     [Export] public Texture2D PicturePath;
@@ -21,12 +23,15 @@ public partial class Resume : Control
     private Label _nameLabel;
     private Label _positionLabel;
     private Label _genderLabel;
+    private Label _ageLabel;
+    private Label _raceLabel;
     private Label _educationLabel;
     private Label _skillsLabel;
     private Label _workLabel;
-    private VBoxContainer _skillsTab;
-    private TextureRect _textureRect;
-    private Button _chooseButton;
+        private VBoxContainer _skillsTab;
+        private VBoxContainer _workTab;
+        private TextureRect _textureRect;
+        private Button _chooseButton;
     private List<string> viewedTabs = new List<string>();
     private string[] tabs = { "Profile", "Education", "Skills", "Work" };
 
@@ -39,16 +44,19 @@ public partial class Resume : Control
         // Get all required nodes with null checks
         _nameLabel = GetNode<Label>("VBoxContainer/Header/NameLabel");
         _positionLabel = GetNode<Label>("VBoxContainer/Header/PositionLabel");
-        _genderLabel = GetNode<Label>("VBoxContainer/TabContainer/Profile/Gender");
+        _genderLabel = GetNode<Label>("VBoxContainer/TabContainer/Profile/Gender/GenderValue");
+        _ageLabel = GetNode<Label>("VBoxContainer/TabContainer/Profile/Age/AgeValue");
+        _raceLabel = GetNode<Label>("VBoxContainer/TabContainer/Profile/Origin/OriginValue");
         _educationLabel = GetNode<Label>("VBoxContainer/TabContainer/Education/EducationValue");
         _workLabel = GetNode<Label>("VBoxContainer/TabContainer/Work/WorkValue");
         _skillsTab = GetNode<VBoxContainer>("VBoxContainer/TabContainer/Skills");
+        _workTab = GetNode<VBoxContainer>("VBoxContainer/TabContainer/Work");
         _textureRect = GetNode<TextureRect>("VBoxContainer/TabContainer/Profile/TextureRect");
         _chooseButton = GetNode<Button>("ChooseButton");
 
         // Validate all nodes were found
         if (_nameLabel == null || _positionLabel == null || _genderLabel == null ||
-            _educationLabel == null || _workLabel == null || _skillsTab == null ||
+            _ageLabel == null || _raceLabel == null || _educationLabel == null || _workLabel == null || _skillsTab == null || _workTab == null ||
             _textureRect == null || _chooseButton == null)
         {
             GD.PrintErr("Resume: Failed to find required nodes in scene tree");
@@ -59,10 +67,10 @@ public partial class Resume : Control
         _chooseButton.Pressed += OnChooseButtonPressed;
 
         // Initialize skills display if Skills array is available
-        GD.Print($"Resume._Ready: Skills array length = {Skills?.Length ?? 0}");
-        GD.Print($"Resume._Ready: Skills content = {(Skills != null ? string.Join(", ", Skills) : "null")}");
-        GD.Print($"Resume._Ready: _skillsTab is null: {_skillsTab == null}");
-        
+        // GD.Print($"Resume._Ready: Skills array length = {Skills?.Length ?? 0}");
+        // GD.Print($"Resume._Ready: Skills content = {(Skills != null ? string.Join(", ", Skills) : "null")}");
+        // GD.Print($"Resume._Ready: _skillsTab is null: {_skillsTab == null}");
+
         if (Skills != null && _skillsTab != null && Skills.Length > 0)
         {
             // Clear existing skill labels
@@ -77,7 +85,7 @@ public partial class Resume : Control
                 var skillLabel = new Label();
                 skillLabel.Text = Skills[i];
                 _skillsTab.AddChild(skillLabel);
-                GD.Print($"Resume._Ready: Added skill label: {Skills[i]}");
+                // GD.Print($"Resume._Ready: Added skill label: {Skills[i]}");
             }
         }
         else
@@ -105,6 +113,12 @@ public partial class Resume : Control
         if (_genderLabel != null && Gender != null)
             _genderLabel.Text = Gender;
 
+        if (_ageLabel != null && Age > 0)
+            _ageLabel.Text = Age.ToString();
+
+        if (_raceLabel != null && Race != null)
+            _raceLabel.Text = Race;
+
         if (_educationLabel != null && Education != null)
             _educationLabel.Text = Education;
 
@@ -116,6 +130,9 @@ public partial class Resume : Control
 
         // Update skills display
         EnsureSkillsDisplayed();
+        
+        // Update work experience display
+        EnsureWorkExperienceDisplayed();
     }
 
     private void OnChooseButtonPressed()
@@ -160,7 +177,7 @@ public partial class Resume : Control
                 var skillLabel = new Label();
                 skillLabel.Text = Skills[i];
                 _skillsTab.AddChild(skillLabel);
-                GD.Print($"EnsureSkillsDisplayed: Added skill label: {Skills[i]}");
+                // GD.Print($"EnsureSkillsDisplayed: Added skill label: {Skills[i]}");
             }
         }
         else
@@ -173,20 +190,22 @@ public partial class Resume : Control
     /// Set resume data after instantiation (for dynamic loading).
     /// </summary>
     public void SetResumeData(string candidateId, string candidateName, string position, string gender,
-        string education, string[] skills, string picturePath, string workExperience)
+        int age, string race, string education, string[] skills, string picturePath, string workExperience)
     {
-        GD.Print($"SetResumeData called with skills: {(skills != null ? string.Join(", ", skills) : "null")}");
+        // GD.Print($"SetResumeData called with skills: {(skills != null ? string.Join(", ", skills) : "null")}");
 
         CandidateId = candidateId ?? "UNKNOWN001";
         CandidateName = candidateName ?? "Unknown Candidate";
         CandidatePosition = position ?? "Unknown Position";
         Gender = gender ?? "Unknown";
+        Age = age > 0 ? age : 25;
+        Race = race ?? "Unknown";
         Education = education ?? "Unknown Education";
 
         // Set skills array
         Skills = skills ?? new string[0];
 
-        GD.Print($"SetResumeData: Skills set to: {string.Join(", ", Skills)}");
+        // GD.Print($"SetResumeData: Skills set to: {string.Join(", ", Skills)}");
 
         WorkExperience = workExperience ?? "No Experience";
 
@@ -206,14 +225,67 @@ public partial class Resume : Control
         if (_nameLabel != null)
         {
             RefreshUI();
-            GD.Print("Resume: Refreshed UI with new data");
+            // GD.Print("Resume: Refreshed UI with new data");
         }
         else
         {
             GD.Print("Resume: UI nodes not ready yet, data will be displayed when _Ready() completes");
         }
-        
+
         // Ensure skills are displayed regardless of timing
         EnsureSkillsDisplayed();
+        EnsureWorkExperienceDisplayed();
+    }
+
+    /// <summary>
+    /// Parse work experience string into individual job entries
+    /// </summary>
+    private void ParseAndDisplayWorkExperience()
+    {
+        if (string.IsNullOrEmpty(WorkExperience))
+            return;
+
+        // Parse format: "X years at Company as Title, Y years at Company as Title"
+        var workEntries = new List<string>();
+        var parts = WorkExperience.Split(new[] { ", " }, System.StringSplitOptions.RemoveEmptyEntries);
+        
+        foreach (var part in parts)
+        {
+            if (part.Contains("years at"))
+            {
+                // Clean up the text and add to work entries
+                var cleanedPart = part.Trim();
+                if (cleanedPart.StartsWith("and "))
+                    cleanedPart = "  " + cleanedPart.Substring(4);
+                workEntries.Add(cleanedPart);
+            }
+        }
+
+        // Clear existing work experience labels
+        foreach (Node child in _workTab.GetChildren())
+        {
+            if (child is Label && child.Name != "Work")
+                child.QueueFree();
+        }
+
+        // Add new labels for each work experience
+        foreach (var entry in workEntries)
+        {
+            var workLabel = new Label();
+            workLabel.Text = entry.Trim();
+            workLabel.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+            _workTab.AddChild(workLabel);
+        }
+    }
+
+    /// <summary>
+    /// Ensure work experience is properly displayed in UI
+    /// </summary>
+    private void EnsureWorkExperienceDisplayed()
+    {
+        if (_workTab != null && !string.IsNullOrEmpty(WorkExperience))
+        {
+            ParseAndDisplayWorkExperience();
+        }
     }
 }

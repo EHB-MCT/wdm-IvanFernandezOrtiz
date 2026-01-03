@@ -7,6 +7,7 @@ import {
 	getChoicesByCandidate,
 	getChoicesWithCandidateDetails,
 	getChoiceAnalytics,
+	clearAllChoices,
 } from "../controllers/choiceController.js";
 import { validateLogInput, validateBatchChoiceInput, validateIdParam } from "../middleware/validation.js";
 
@@ -491,5 +492,36 @@ router.get("/analytics", getChoiceAnalytics);
  *         description: Internal server error during aggregation
  */
 router.get("/details", getChoicesWithCandidateDetails);
+
+/**
+ * @swagger
+ * /api/choices/clear:
+ *   delete:
+ *     summary: Clear all choices
+ *     description: Deletes all player choices from the database. This operation cannot be undone.
+ *     tags: [Choices]
+ *     responses:
+ *       200:
+ *         description: Choices cleared successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: ok
+ *                 deleted:
+ *                   type: number
+ *                   description: Number of choices deleted
+ *                   example: 50
+ *                 message:
+ *                   type: string
+ *                   example: "Successfully deleted 50 choices"
+ *       500:
+ *         description: Internal server error
+ */
+router.delete("/clear", clearAllChoices);
+
 
 export default router;
