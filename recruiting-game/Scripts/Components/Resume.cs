@@ -37,7 +37,7 @@ public partial class Resume : Control
 
     const string Unknown = "N/A";
 
-    private float timeTaken;
+    
 
     public override void _Ready()
     {
@@ -145,7 +145,7 @@ public partial class Resume : Control
         {"candidate_workExperience", WorkExperience ?? Unknown},
         {"candidate_skills", Skills ?? new string[0]},
         {"tabs_viewed", new Array(viewedTabs.Select(tab => (Variant)tab).ToArray()) },
-        {"time_taken", timeTaken}
+        {"time_taken", 0.0}
     };
 
         EmitSignal("ResumeChosen", data);

@@ -11,7 +11,7 @@ public partial class ResumeController : Control
     private ResumeView _resumeView;
     private List<string> _viewedTabs = new List<string>();
     private string[] _tabs = { "Profile", "Education", "Skills", "Work" };
-    private float _timeTaken;
+    
 
     // Data properties
     private string _candidateId;
@@ -73,10 +73,7 @@ public partial class ResumeController : Control
         }
     }
 
-    public void SetTimeTaken(float timeTaken)
-    {
-        _timeTaken = timeTaken;
-    }
+    
 
     private void OnChooseButtonPressed()
     {
@@ -88,7 +85,7 @@ public partial class ResumeController : Control
             {"candidate_workExperience", _workExperience ?? "N/A"},
             {"candidate_skills", _skills ?? new string[0]},
             {"tabs_viewed", new Array(_viewedTabs.Select(tab => (Variant)tab).ToArray()) },
-            {"time_taken", _timeTaken}
+            {"time_taken", 0.0}
         };
 
         EmitSignal("ResumeChosen", data);
