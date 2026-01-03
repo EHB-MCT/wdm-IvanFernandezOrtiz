@@ -6,6 +6,7 @@ public partial class Main : Node
 {
     private UIManager _uiManager;
     private RoundManager _roundManager;
+    private int _currentSeed = 0;
 
     public override async void _Ready()
     {
@@ -59,7 +60,23 @@ public partial class Main : Node
     private async void StartGame()
     {
         _uiManager.StartGamePressed();
-        GenerateAndStartNewGame();
+        
+        // Check if this is a restart (game was completed)
+        if (GameManager.CurrentRound > GameManager.MaxRounds)
+        {
+            GameManager.ResetGame();
+            // Use the same seed for consistent candidates when restarting
+            GD.Print($"Restarting game with same seed: {_currentSeed}");
+            GameManager.SetSeed(_currentSeed);
+            _uiManager.SetMessage($"Restarting with seed: {_currentSeed}");
+            await GameManager.LoadCandidatesAsync();
+            await NewRound();
+        }
+        else
+        {
+            // New game - generate new candidates
+            GenerateAndStartNewGame();
+        }
     }
 
     private async void NewGame()
@@ -76,9 +93,9 @@ public partial class Main : Node
 
         try
         {
-            // Generate a seed for reproducible randomness
-            var seed = System.DateTime.Now.Millisecond;
-            GD.Print($"Using seed: {seed} for candidate generation");
+            // Generate a better seed for reproducible randomness
+            _currentSeed = (int)(System.DateTime.Now.Ticks % 2147483647);
+            GD.Print($"Using seed: {_currentSeed} for candidate generation");
 
             // Clear existing candidates first
             var cleared = await ApiService.ClearCandidatesAsync();
@@ -90,7 +107,7 @@ public partial class Main : Node
     }
 
             // Generate new random candidates (100 by default, with seed)
-            var generated = await ApiService.GenerateCandidatesAsync(100, seed);
+            var generated = await ApiService.GenerateCandidatesAsync(100, _currentSeed);
             if (!generated)
             {
                 GD.PrintErr("Failed to generate candidates");
@@ -98,13 +115,14 @@ public partial class Main : Node
                 return;
             }
 
-            GD.Print("Candidates generated successfully! Starting new game...");
+            GD.Print($"Candidates generated successfully! Starting new game with seed {_currentSeed}...");
+            _uiManager.SetMessage("Game started!");
 
             // Load the newly generated candidates
             await CandidateLoader.LoadCandidatesAsync();
 
             // Initialize GameManager with the seed for consistent randomization
-            GameManager.SetSeed(seed);
+            GameManager.SetSeed(_currentSeed);
 
             // Start the actual game
             NewGame();
@@ -176,21 +194,28 @@ public partial class Main : Node
 
     private async void CheckRoundProgress()
     {
+        GD.Print($"CheckRoundProgress - Current Round: {GameManager.CurrentRound}, Max Rounds: {GameManager.MaxRounds}");
+        
         if (GameManager.CheckRoundComplete())
         {
-            if (GameManager.IsGameComplete())
+            GD.Print("Round complete - checking if game should end");
+            
+            // Check if this was the last round BEFORE advancing
+            if (GameManager.CurrentRound >= GameManager.MaxRounds)
             {
+                GD.Print("This was the last round - ending game");
                 await EndGameAsync();
             }
             else
             {
+                GD.Print("Game continues - advancing to next round");
                 GameManager.AdvanceRound();
                 await NewRound();
             }
         }
         else
         {
-            // GD.Print($"Round {GameManager.CurrentRound}: Selection made, continuing round...");
+            GD.Print($"Round {GameManager.CurrentRound}: Selection made, continuing round...");
         }
     }
 
@@ -226,14 +251,11 @@ public partial class Main : Node
         _uiManager.StopTimer();
         _uiManager.ShowGameCompleteMessage();
 
-        GameManager.ResetGame();
-
-        // Optionally wait before starting a new game
-        await Task.Delay(3000);
-
-        // Start new game automatically or wait for user input
-        // GD.Print("Starting new game...");
-        NewGame();
+        // Don't reset the game or start a new one automatically
+        // GameManager.ResetGame();
+        
+        // Show a restart button or option for player to restart
+        _uiManager.ShowRestartOption();
     }
 
     public async Task NewRound()

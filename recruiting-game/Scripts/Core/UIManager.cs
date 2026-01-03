@@ -17,6 +17,10 @@ public partial class UIManager : Node
         _timer = parentNode.GetNode<Timer>("Timer");
         _StartButton = parentNode.GetNode<Button>("StartButton");
 
+        // Show the start button initially
+        _StartButton.Text = "Play";
+        _StartButton.Show();
+
         // GD.Print($"UIManager initialized - MessageLabel: {(_MessageLabel != null ? "found" : "not found")}, TimeLeft: {(_TimeLeftLabel != null ? "found" : "not found")}, Timer: {(_timer != null ? "found" : "not found")}");
     }
 
@@ -32,6 +36,7 @@ public partial class UIManager : Node
     public void StartGamePressed()
     {
         _StartButton.Hide();
+        _StartButton.Text = "Play"; // Reset text to default
     }
 
     public void SetMessage(string message)
@@ -67,6 +72,13 @@ public partial class UIManager : Node
     public void ShowGameCompleteMessage()
     {
         SetMessage("Game Complete! Thank you for playing!");
+    }
+
+    public void ShowRestartOption()
+    {
+        SetMessage("Game Complete! Press Start to play again.");
+        _StartButton.Text = "Play Again";
+        _StartButton.Show();
     }
 
     public void StartTimer()

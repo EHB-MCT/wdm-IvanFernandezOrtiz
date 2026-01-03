@@ -105,6 +105,8 @@ public class CandidateData
     public string candidateName { get; set; }
     public string position { get; set; }
     public string gender { get; set; }
+    public int age { get; set; }
+    public string race { get; set; }
     public string education { get; set; }
     public string[] skills { get; set; }
     public string picturePath { get; set; }

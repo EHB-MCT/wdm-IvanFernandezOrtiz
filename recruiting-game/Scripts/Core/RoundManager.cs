@@ -107,6 +107,8 @@ public partial class RoundManager : Node
             candidate.candidateName,
             candidate.position,
             candidate.gender,
+            candidate.age,
+            candidate.race,
             candidate.education,
             candidate.skills,
             candidate.picturePath,

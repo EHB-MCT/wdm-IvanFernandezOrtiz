@@ -9,7 +9,7 @@ public static class GameManager
     public static int CurrentRound { get; private set; }
     public static CandidateData[] CurrentCandidates { get; private set; }
     public static CandidateData[] AvailableCandidates { get; private set; }
-    public static int MaxRounds { get; private set; } = 5;
+    public static int MaxRounds { get; private set; } = 10;
     private static Random _random = new Random();
 
     public static void Initialize()
@@ -112,7 +112,7 @@ public static class GameManager
                 CurrentCandidates[i] = candidatesInPosition[randomIndex];
             }
 
-            // GD.Print($"Prepared 2 {selectedGroup.Key} candidates for round {CurrentRound}");
+            GD.Print($"Prepared 2 {selectedGroup.Key} candidates for round {CurrentRound}: {CurrentCandidates[0].candidateName} vs {CurrentCandidates[1].candidateName}");
         }
     }
 
@@ -166,12 +166,13 @@ public static class GameManager
     public static async void AdvanceRound()
     {
         CurrentRound++;
-        GD.Print($"Round {CurrentRound - 1} complete! Starting round {CurrentRound}");
+        GD.Print($"ADVANCING: Round {CurrentRound - 1} complete! Starting round {CurrentRound} (Max: {MaxRounds})");
         await PrepareRoundCandidates();
     }
 
     public static bool IsGameComplete()
     {
+        GD.Print($"IsGameComplete: CurrentRound={CurrentRound}, MaxRounds={MaxRounds}, Result={CurrentRound > MaxRounds}");
         return CurrentRound > MaxRounds;
     }
 
