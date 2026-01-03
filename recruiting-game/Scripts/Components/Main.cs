@@ -169,12 +169,15 @@ public partial class Main : Node
             }
         }
 
+        // Calculate actual time taken (20 seconds max - time remaining)
+        double timeTaken = 20.0 - _uiManager.GetTimeLeft();
+        
         // Create and send log data
         var logData = ApiService.CreateLogData(
             chosenCandidateId,
             rejectedCandidateId,
             data["candidate_position"].ToString(),
-            _uiManager.GetTimeLeft(),
+            timeTaken,
             tabsViewed,
             GameManager.CurrentRound
         );
