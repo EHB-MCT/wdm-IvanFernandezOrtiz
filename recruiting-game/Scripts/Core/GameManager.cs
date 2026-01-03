@@ -10,6 +10,7 @@ public static class GameManager
     public static CandidateData[] CurrentCandidates { get; private set; }
     public static CandidateData[] AvailableCandidates { get; private set; }
     public static int MaxRounds { get; private set; } = 10;
+    public static string PlayerId { get; private set; }
     private static Random _random = new Random();
 
     public static void Initialize()
@@ -17,7 +18,9 @@ public static class GameManager
         CurrentRound = 1;
         CurrentCandidates = null;
         AvailableCandidates = null;
-        MaxRounds = 5;
+        MaxRounds = 10;
+        PlayerId = "player_" + DateTime.Now.Ticks;
+        GD.Print($"GameManager initialized with PlayerId: {PlayerId}");
     }
 
     public static void SetSeed(int seed)
