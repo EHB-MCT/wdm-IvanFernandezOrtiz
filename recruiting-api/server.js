@@ -42,6 +42,18 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
 app.use("/api/candidates", candidateRoutes);
 app.use("/api/choices", choiceRoutes);
 
+// Player session routes
+import playerSessionRoutes from "./src/routes/playerSessionRoutes.js";
+app.use("/api/sessions", playerSessionRoutes);
+
+// Admin routes
+import adminRoutes from "./src/routes/adminRoutes.js";
+app.use("/api/admin", adminRoutes);
+
+// Migration routes (temporary)
+import migrationRoutes from "./src/routes/migrationRoutes.js";
+app.use("/api/migrate", migrationRoutes);
+
 // 404 handler
 app.use(notFoundHandler);
 
