@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const CandidateSchema = new mongoose.Schema(
 	{
-		candidate_id: { type: String, required: true },
+	candidate_id: { type: String, required: true },
 		candidateName: { type: String, required: true },
 		gender: { type: String, required: true, enum: ["Male", "Female", "Other"] },
 		age: { type: Number, required: true, min: 18, max: 70 },

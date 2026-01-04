@@ -41,7 +41,7 @@ namespace RecruitingGame.Services
             List<string> tabsViewed, int roundNumber)
         {
             return new Godot.Collections.Dictionary {
-                {"player_id", "player_" + DateTime.Now.Ticks},
+                {"player_id", GameManager.PlayerId},
                 {"chosen_candidate_id", chosenCandidateId},
                 {"rejected_candidate_id", rejectedCandidateId ?? ""},
                 {"position", position},

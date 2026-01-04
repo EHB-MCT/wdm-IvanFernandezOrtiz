@@ -60,7 +60,7 @@ public partial class Main : Node
     private async void StartGame()
     {
         _uiManager.StartGamePressed();
-        
+
         // Check if this is a restart (game was completed)
         if (GameManager.CurrentRound > GameManager.MaxRounds)
         {
@@ -104,7 +104,7 @@ public partial class Main : Node
                 GD.PrintErr("Failed to clear existing candidates");
                 _uiManager.SetMessage("Failed to clear candidates");
                 return;
-    }
+            }
 
             // Generate new random candidates (100 by default, with seed)
             var generated = await ApiService.GenerateCandidatesAsync(100, _currentSeed);
@@ -169,12 +169,15 @@ public partial class Main : Node
             }
         }
 
+        // Calculate actual time taken (20 seconds max - time remaining)
+        double timeTaken = 20.0 - _uiManager.GetTimeLeft();
+
         // Create and send log data
         var logData = ApiService.CreateLogData(
             chosenCandidateId,
             rejectedCandidateId,
             data["candidate_position"].ToString(),
-            _uiManager.GetTimeLeft(),
+            timeTaken,
             tabsViewed,
             GameManager.CurrentRound
         );
@@ -195,11 +198,11 @@ public partial class Main : Node
     private async void CheckRoundProgress()
     {
         GD.Print($"CheckRoundProgress - Current Round: {GameManager.CurrentRound}, Max Rounds: {GameManager.MaxRounds}");
-        
+
         if (GameManager.CheckRoundComplete())
         {
             GD.Print("Round complete - checking if game should end");
-            
+
             // Check if this was the last round BEFORE advancing
             if (GameManager.CurrentRound >= GameManager.MaxRounds)
             {
@@ -253,7 +256,7 @@ public partial class Main : Node
 
         // Don't reset the game or start a new one automatically
         // GameManager.ResetGame();
-        
+
         // Show a restart button or option for player to restart
         _uiManager.ShowRestartOption();
     }
