@@ -1,6 +1,6 @@
 [gd_scene load_steps=4 format=3 uid="uid://blweffwkmqcud"]
 
-[ext_resource type="Script" uid="uid://b1bwq6dp10y8o" path="res://Scripts/Components/Resume.cs" id="1_g7n6h"]
+[ext_resource type="Script" uid="uid://ch3062larchke" path="res://Scripts/Components/Resume.cs" id="1_g7n6h"]
 [ext_resource type="Texture2D" uid="uid://8nhvoaypwsq6" path="res://Assets/icon.svg" id="2_wc3a8"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dc88f"]
@@ -47,11 +47,10 @@ layout_mode = 2
 theme_override_constants/side_margin = 0
 theme_override_styles/panel = SubResource("StyleBoxFlat_dc88f")
 tab_alignment = 2
-current_tab = 3
+current_tab = 0
 tabs_rearrange_group = 0
 
 [node name="Profile" type="VBoxContainer" parent="VBoxContainer/TabContainer"]
-visible = false
 layout_mode = 2
 metadata/_tab_index = 0
 
@@ -118,6 +117,7 @@ theme_override_constants/separation = 16
 metadata/_tab_index = 2
 
 [node name="Work" type="VBoxContainer" parent="VBoxContainer/TabContainer"]
+visible = false
 layout_mode = 2
 theme_override_constants/separation = 16
 metadata/_tab_index = 3
