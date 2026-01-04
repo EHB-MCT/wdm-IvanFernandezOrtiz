@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Recruitment Analytics Dashboard - Real-time insights on hiring patterns and demographic data">
+    <title>Recruitment Analytics Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Animations */
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.5); }
+            50% { box-shadow: 0 0 40px rgba(59, 130, 246, 0.8); }
+        }
+        
+        /* Base Styles */
+        .cyber-border {
+            border: 1px solid #3b82f6;
+            background: linear-gradient(135deg, rgba(17, 24, 39, 0.9), rgba(31, 41, 55, 0.9));
+        }
+        
+        .cyber-grid {
+            background-image: 
+                linear-gradient(rgba(59, 130, 246, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(59, 130, 246, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+        }
+        
+        /* Text Colors */
+        .text-cyan { color: #06b6d4; }
+        .text-blue { color: #3b82f6; }
+        
+        /* Interactive Effects */
+        .hover-glow:hover { animation: pulse-glow 2s infinite; }
+        
+        /* Scrollbar Styling */
+        .scrollbar-thin::-webkit-scrollbar { width: 6px; }
+        .scrollbar-thin::-webkit-scrollbar-track { background: #1f2937; }
+        .scrollbar-thin::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 3px; }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen cyber-grid">
+    <!-- Header -->
+    <header class="bg-gray-800 border-b border-blue-500 shadow-xl" role="banner">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <!-- Logo and Title -->
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center" aria-hidden="true">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                    </div>
+                    <h1 class="text-2xl font-bold text-cyan">Recruitment Analytics Dashboard</h1>
+                </div>
+                
+                <!-- Controls -->
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center" id="status-indicator">
+                        <span class="w-3 h-3 bg-green-500 rounded-full animate-pulse mr-2" aria-hidden="true"></span>
+                        <span class="text-sm text-gray-400">Live</span>
+                    </div>
+                    <button onclick="refreshData()" class="px-3 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors hover-glow text-sm" aria-label="Refresh data">
+                        Refresh
+                    </button>
+                    <button onclick="viewAllCandidates()" class="px-3 py-2 bg-cyan-600 hover:bg-cyan-700 rounded-lg transition-colors hover-glow text-sm" aria-label="View all candidates">
+                        Candidates
+                    </button>
+                    <button onclick="clearAllData()" class="px-3 py-2 bg-red-600 hover:bg-red-700 rounded-lg transition-colors hover-glow text-sm" aria-label="Clear all data">
+                        Clear Data
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-6" role="main">
+        <!-- Key Metrics Section -->
+        <section class="mb-6" aria-labelledby="metrics-heading">
+            <h2 id="metrics-heading" class="sr-only">Key Performance Metrics</h2>
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                <article class="cyber-border rounded-lg p-4 hover-glow transition-all">
+                    <div class="text-blue text-sm font-medium mb-1">Total Choices</div>
+                    <div id="total-choices" class="text-3xl font-bold" aria-live="polite">-</div>
+                </article>
+                <article class="cyber-border rounded-lg p-4 hover-glow transition-all">
+                    <div class="text-cyan text-sm font-medium mb-1">Player Sessions</div>
+                    <div id="unique-players" class="text-3xl font-bold" aria-live="polite">-</div>
+                </article>
+                <article class="cyber-border rounded-lg p-4 hover-glow transition-all">
+                    <div class="text-blue text-sm font-medium mb-1">Completed Games</div>
+                    <div id="completed-games" class="text-3xl font-bold" aria-live="polite">-</div>
+                </article>
+                <article class="cyber-border rounded-lg p-4 hover-glow transition-all">
+                    <div class="text-cyan text-sm font-medium mb-1">Avg Rounds/Player</div>
+                    <div id="avg-rounds" class="text-3xl font-bold" aria-live="polite">-</div>
+                </article>
+                <article class="cyber-border rounded-lg p-4 hover-glow transition-all">
+                    <div class="text-blue text-sm font-medium mb-1">Avg Game Time</div>
+                    <div id="avg-game-time" class="text-3xl font-bold" aria-live="polite">-</div>
+                </article>
+            </div>
+        </section>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Players List Section -->
+            <aside class="lg:col-span-1" aria-labelledby="players-heading">
+                <div class="cyber-border rounded-lg p-4 h-full">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 id="players-heading" class="text-xl font-bold text-cyan">Players</h2>
+                        <button onclick="clearFilter()" class="text-xs px-2 py-1 bg-gray-700 hover:bg-gray-600 rounded transition-colors" aria-label="Clear player filter">
+                            Clear Filter
+                        </button>
+                    </div>
+                    <div class="overflow-y-auto max-h-96 scrollbar-thin" role="region" aria-label="Players list" tabindex="0">
+                        <table class="w-full">
+                            <thead class="text-left text-xs text-gray-400 border-b border-gray-700">
+                                <tr>
+                                    <th class="pb-2" scope="col">Player ID</th>
+                                    <th class="pb-2" scope="col">Games</th>
+                                    <th class="pb-2" scope="col">Completed</th>
+                                    <th class="pb-2" scope="col">Completion</th>
+                                    <th class="pb-2" scope="col">Avg Time</th>
+                                </tr>
+                            </thead>
+                            <tbody id="players-table-body" class="text-sm">
+                                <tr>
+                                    <td colspan="5" class="py-4 text-center text-gray-500">Loading...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Charts Section -->
+            <section class="lg:col-span-2 space-y-6" aria-labelledby="charts-heading">
+                <h2 id="charts-heading" class="sr-only">Analytics Charts</h2>
+                
+                <!-- Game Info -->
+                <article class="cyber-border rounded-lg p-4">
+                    <h3 class="text-xl font-bold text-cyan mb-2">Game Structure</h3>
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <span class="text-blue font-medium">Max Rounds:</span> 10 rounds per game
+                        </div>
+                        <div>
+                            <span class="text-blue font-medium">Round Duration:</span> 20 seconds max
+                        </div>
+                        <div>
+                            <span class="text-blue font-medium">Session:</span> Each player gets 10 choices
+                        </div>
+                        <div>
+                            <span class="text-blue font-medium">Play Again:</span> Creates new player session
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Gender Demographics Chart -->
+                <article class="cyber-border rounded-lg p-4">
+                    <h3 class="text-xl font-bold text-cyan mb-4">Gender Hiring Rates</h3>
+                    <p class="text-xs text-gray-400 mb-2">
+                        Percentage of times each gender was hired when appearing as a candidate
+                    </p>
+                    <div class="relative h-64" role="img" aria-label="Gender hiring rates chart">
+                        <canvas id="gender-chart"></canvas>
+                    </div>
+                </article>
+
+                <!-- Race Demographics Chart -->
+                <article class="cyber-border rounded-lg p-4">
+                    <h3 class="text-xl font-bold text-cyan mb-4">Race Hiring Rates</h3>
+                    <p class="text-xs text-gray-400 mb-2">
+                        Percentage of times each race was hired when appearing as a candidate
+                    </p>
+                    <div class="relative h-64" role="img" aria-label="Race hiring rates chart">
+                        <canvas id="race-chart"></canvas>
+                    </div>
+                </article>
+
+                <!-- Age Range Demographics Chart -->
+                <article class="cyber-border rounded-lg p-4">
+                    <h3 class="text-xl font-bold text-cyan mb-4">Age Range Hiring Rates</h3>
+                    <p class="text-xs text-gray-400 mb-2">
+                        Percentage of times each age group was hired when appearing as a candidate
+                    </p>
+                    <div class="relative h-64" role="img" aria-label="Age range hiring rates chart">
+                        <canvas id="age-chart"></canvas>
+                    </div>
+                </article>
+
+                <!-- Time Performance Chart -->
+                <article class="cyber-border rounded-lg p-4">
+                    <h3 class="text-xl font-bold text-cyan mb-4">Decision Speed vs Round Number</h3>
+                    <p class="text-xs text-gray-400 mb-2">
+                        Shows if players make faster decisions as rounds progress (lower is faster)
+                    </p>
+                    <div class="relative h-64" role="img" aria-label="Decision speed performance chart">
+                        <canvas id="performance-chart"></canvas>
+                    </div>
+                </article>
+            </section>
+        </div>
+    </main>
+
+    <!-- Scripts -->
+    <script>
+        // Global state
+        let currentPlayerFilter = null;
+        let genderChart = null;
+        let raceChart = null;
+        let ageChart = null;
+        let performanceChart = null;
+        let allData = [];
+        let playersList = [];
+
+        // Configuration
+        const API_BASE = window.location.origin + '/api';
+        const MAX_ROUND_TIME = 20.0;
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeCharts();
+            loadData();
+        });
+
+        // Initialize Chart.js charts
+        function initializeCharts() {
+            // Gender Demographics Chart
+            const genderCtx = document.getElementById('gender-chart').getContext('2d');
+            genderChart = new Chart(genderCtx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Hiring Rate (%)',
+                        data: [],
+                        backgroundColor: [
+                            'rgba(59, 130, 246, 0.6)',
+                            'rgba(236, 72, 153, 0.6)',
+                            'rgba(34, 197, 94, 0.6)'
+                        ],
+                        borderColor: [
+                            'rgba(59, 130, 246, 1)',
+                            'rgba(236, 72, 153, 1)',
+                            'rgba(34, 197, 94, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: '#e5e7eb' }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed.y || 0;
+                                    const appearances = context.dataset.appearances?.[context.dataIndex] || 0;
+                                    return `${label}: ${value}% (${appearances} appearances)`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(75, 85, 99, 0.3)' },
+                            ticks: { color: '#9ca3af' }
+                        },
+                        y: {
+                            grid: { color: 'rgba(75, 85, 99, 0.3)' },
+                            ticks: { color: '#9ca3af' },
+                            beginAtZero: true,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: 'Hiring Rate (%)',
+                                color: '#9ca3af'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Race Demographics Chart
+            const raceCtx = document.getElementById('race-chart').getContext('2d');
+            raceChart = new Chart(raceCtx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Hiring Rate (%)',
+                        data: [],
+                        backgroundColor: 'rgba(251, 146, 60, 0.6)',
+                        borderColor: 'rgba(251, 146, 60, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: '#e5e7eb' }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed.y || 0;
+                                    const appearances = context.dataset.appearances?.[context.dataIndex] || 0;
+                                    return `${label}: ${value}% (${appearances} appearances)`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(75, 85, 99, 0.3)' },
+                            ticks: { color: '#9ca3af' }
+                        },
+                        y: {
+                            grid: { color: 'rgba(75, 85, 99, 0.3)' },
+                            ticks: { color: '#9ca3af' },
+                            beginAtZero: true,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: 'Hiring Rate (%)',
+                                color: '#9ca3af'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Age Range Demographics Chart
+            const ageCtx = document.getElementById('age-chart').getContext('2d');
+            ageChart = new Chart(ageCtx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Hiring Rate (%)',
+                        data: [],
+                        backgroundColor: 'rgba(168, 85, 247, 0.6)',
+                        borderColor: 'rgba(168, 85, 247, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: '#e5e7eb' }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed.y || 0;
+                                    const appearances = context.dataset.appearances?.[context.dataIndex] || 0;
+                                    return `${label}: ${value}% (${appearances} appearances)`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(75, 85, 99, 0.3)' },
+                            ticks: { color: '#9ca3af' }
+                        },
+                        y: {
+                            grid: { color: 'rgba(75, 85, 99, 0.3)' },
+                            ticks: { color: '#9ca3af' },
+                            beginAtZero: true,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: 'Hiring Rate (%)',
+                                color: '#9ca3af'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Performance Chart
+            const performanceCtx = document.getElementById('performance-chart').getContext('2d');
+            performanceChart = new Chart(performanceCtx, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'Decision Time vs Round',
+                        data: [],
+                        backgroundColor: 'rgba(6, 182, 212, 0.6)',
+                        borderColor: 'rgba(6, 182, 212, 1)',
+                        borderWidth: 1,
+                        pointRadius: 5,
+                        pointHoverRadius: 7
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: '#e5e7eb' }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `Round ${context.parsed.x}: ${context.parsed.y.toFixed(1)}s`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Round Number (Max: 10)',
+                                color: '#9ca3af'
+                            },
+                            grid: { color: 'rgba(75, 85, 99, 0.3)' },
+                            ticks: { color: '#9ca3af' },
+                            max: 10
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Time Taken (Max: 20s)',
+                                color: '#9ca3af'
+                            },
+                            grid: { color: 'rgba(75, 85, 99, 0.3)' },
+                            ticks: { color: '#9ca3af' },
+                            beginAtZero: true,
+                            max: 20
+                        }
+                    }
+                }
+            });
+        }
+
+        // Data loading functions
+        async function loadData() {
+            try {
+                updateStatus('Loading', 'yellow');
+                
+                const [detailsResponse, playersResponse, analyticsResponse] = await Promise.all([
+                    fetch(`${API_BASE}/admin/sessions`),
+                    fetch(`${API_BASE}/admin/players`),
+                    fetch(`${API_BASE}/admin/analytics/bias`)
+                ]);
+
+                if (!detailsResponse.ok || !playersResponse.ok || !analyticsResponse.ok) {
+                    throw new Error('Failed to fetch data');
+                }
+
+                const detailsData = await detailsResponse.json();
+                const playersData = await playersResponse.json();
+                const analyticsData = await analyticsResponse.json();
+
+                allData = detailsData;
+                playersList = playersData;
+
+                updatePlayersList(playersData);
+                updateStatsCards(detailsData, playersData, analyticsData);
+                updateCharts(detailsData, analyticsData);
+                
+                updateStatus('Live', 'green');
+            } catch (error) {
+                console.error('Error loading data:', error);
+                updateStatus('Error', 'red');
+            }
+        }
+
+        // UI update functions
+        function updatePlayersList(players) {
+            const tbody = document.getElementById('players-table-body');
+            
+            if (!players || players.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="py-4 text-center text-gray-500">No players found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = players.map(player => {
+                const completionRate = player.completionRate || 0;
+                const statusColor = completionRate >= 100 ? 'text-green-400' : 'text-yellow-400';
+                const statusBg = completionRate >= 100 ? 'bg-green-900' : 'bg-yellow-900';
+                
+                return `
+                    <tr class="border-b border-gray-800 hover:bg-gray-800 cursor-pointer transition-colors" 
+                        onclick="filterByPlayer('${player.player_id}')">
+                        <td class="py-2 font-mono text-xs">${player.player_id}</td>
+                        <td class="py-2 text-center">${player.totalSessions}</td>
+                        <td class="py-2 text-center">${player.completedGames}</td>
+                        <td class="py-2 text-center">
+                            <span class="px-2 py-1 rounded text-xs ${statusColor} ${statusBg}">
+                                ${completionRate.toFixed(0)}%
+                            </span>
+                        </td>
+                        <td class="py-2 text-center">${player.avgTimePerGame}s</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function updateStatsCards(data, players, analyticsData) {
+            document.getElementById('total-choices').textContent = data.length || 0;
+            document.getElementById('unique-players').textContent = players?.length || 0;
+            
+            if (analyticsData?.sessionStats) {
+                const stats = analyticsData.sessionStats;
+                document.getElementById('completed-games').textContent = stats.completedSessions || 0;
+                document.getElementById('avg-rounds').textContent = (stats.avgRoundsPerSession || 0).toFixed(1);
+                document.getElementById('avg-game-time').textContent = (stats.avgTimePerSession || 0).toFixed(0) + 's';
+            } else {
+                document.getElementById('completed-games').textContent = '0';
+                document.getElementById('avg-rounds').textContent = '0';
+                document.getElementById('avg-game-time').textContent = '0s';
+            }
+        }
+
+        function updateCharts(detailsData, analyticsData) {
+            const dataToUse = currentPlayerFilter 
+                ? detailsData.filter(d => d.player_id === currentPlayerFilter)
+                : detailsData;
+
+            // Update Gender Chart
+            if (analyticsData?.demographics?.gender) {
+                const genderData = analyticsData.demographics.gender;
+                const labels = Object.keys(genderData.hiringRates || {});
+                const data = labels.map(label => parseFloat(genderData.hiringRates[label] || 0));
+                const appearances = labels.map(label => genderData.appearances[label] || 0);
+
+                genderChart.data.labels = labels;
+                genderChart.data.datasets[0].data = data;
+                genderChart.data.datasets[0].appearances = appearances;
+                genderChart.update();
+            }
+
+            // Update Race Chart
+            if (analyticsData?.demographics?.race) {
+                const raceData = analyticsData.demographics.race;
+                const labels = Object.keys(raceData.hiringRates || {});
+                const data = labels.map(label => parseFloat(raceData.hiringRates[label] || 0));
+                const appearances = labels.map(label => raceData.appearances[label] || 0);
+
+                raceChart.data.labels = labels;
+                raceChart.data.datasets[0].data = data;
+                raceChart.data.datasets[0].appearances = appearances;
+                raceChart.update();
+            }
+
+            // Update Age Range Chart
+            if (analyticsData?.demographics?.ageRange) {
+                const ageData = analyticsData.demographics.ageRange;
+                const ageOrder = ['18-25', '26-35', '36-45', '46-55', '56+'];
+                const labels = ageOrder.filter(range => ageData.hiringRates && ageData.hiringRates[range] !== undefined);
+                const data = labels.map(label => parseFloat(ageData.hiringRates[label] || 0));
+                const appearances = labels.map(label => ageData.appearances[label] || 0);
+
+                ageChart.data.labels = labels;
+                ageChart.data.datasets[0].data = data;
+                ageChart.data.datasets[0].appearances = appearances;
+                ageChart.update();
+            }
+
+            // Update Performance Chart
+            if (dataToUse.length > 0) {
+                const performanceData = dataToUse.map(choice => ({
+                    x: Math.min(choice.round_number || 0, 10),
+                    y: Math.min(choice.time_taken || 0, 20)
+                }));
+
+                performanceChart.data.datasets[0].data = performanceData;
+                performanceChart.update();
+            }
+        }
+
+        // Action functions
+        async function viewAllCandidates() {
+            try {
+                updateStatus('Loading', 'yellow');
+                
+                const response = await fetch(`${API_BASE}/candidates?limit=1000`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch candidates');
+                }
+                
+                const candidates = await response.json();
+                displayCandidatesModal(candidates);
+                
+                updateStatus('Live', 'green');
+            } catch (error) {
+                console.error('Error fetching candidates:', error);
+                updateStatus('Error', 'red');
+                alert('Failed to load candidates: ' + error.message);
+            }
+        }
+
+        async function clearAllData() {
+            if (!confirm('⚠️ WARNING: This will permanently delete all player sessions, choices, and analytics data. This action cannot be undone.\n\nAre you sure you want to continue?')) {
+                return;
+            }
+            
+            if (!confirm('🔴 FINAL CONFIRMATION: This will delete ALL game data including sessions, choices, and analytics.\n\nType "DELETE" to confirm:')) {
+                const confirmation = prompt('Please type "DELETE" to confirm deletion of all data:');
+                if (confirmation !== 'DELETE') {
+                    alert('Deletion cancelled. Confirmation text did not match.');
+                    return;
+                }
+            }
+            
+            try {
+                updateStatus('Deleting', 'red');
+                
+                const response = await fetch(`${API_BASE}/admin/clear`, {
+                    method: 'DELETE'
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to clear data');
+                }
+                
+                const result = await response.json();
+                alert(`✅ Successfully deleted ${result.deleted_sessions} session(s) and all associated data.\n\nDashboard will now refresh.`);
+                
+                loadData();
+                
+            } catch (error) {
+                console.error('Error clearing data:', error);
+                updateStatus('Error', 'red');
+                alert('Failed to clear data: ' + error.message);
+            }
+        }
+
+        function filterByPlayer(playerId) {
+            currentPlayerFilter = playerId;
+            document.getElementById('current-filter').textContent = playerId;
+            loadFilteredData();
+        }
+
+        function clearFilter() {
+            currentPlayerFilter = null;
+            document.getElementById('current-filter').textContent = 'All Players';
+            loadData();
+        }
+
+        function refreshData() {
+            if (currentPlayerFilter) {
+                loadFilteredData();
+            } else {
+                loadData();
+            }
+        }
+
+        // Helper functions
+        function updateStatus(status, color) {
+            const indicator = document.getElementById('status-indicator');
+            const colors = {
+                green: 'bg-green-500',
+                yellow: 'bg-yellow-500',
+                red: 'bg-red-500'
+            };
+            
+            indicator.innerHTML = `
+                <span class="w-3 h-3 ${colors[color]} rounded-full animate-pulse mr-2" aria-hidden="true"></span>
+                <span class="text-sm text-gray-400">${status}</span>
+            `;
+        }
+
+        function loadFilteredData() {
+            // Implementation for filtered data loading
+        }
+
+        // Modal functions for candidates view
+        function displayCandidatesModal(candidates) {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+            modal.setAttribute('role', 'dialog');
+            modal.setAttribute('aria-modal', 'true');
+            modal.setAttribute('aria-labelledby', 'candidates-modal-title');
+            
+            const stats = calculateCandidateStats(candidates);
+            
+            modal.innerHTML = `
+                <div class="cyber-border rounded-lg p-6 max-w-4xl max-h-[80vh] overflow-y-auto scrollbar-thin bg-gray-800">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 id="candidates-modal-title" class="text-2xl font-bold text-cyan">All Candidates (${candidates.length})</h3>
+                        <button onclick="closeModal()" class="text-gray-400 hover:text-white text-2xl" aria-label="Close candidates modal">&times;</button>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                        <div class="bg-gray-700 rounded p-3">
+                            <div class="text-sm text-gray-400">Total Candidates</div>
+                            <div class="text-xl font-bold text-blue">${stats.total}</div>
+                        </div>
+                        <div class="bg-gray-700 rounded p-3">
+                            <div class="text-sm text-gray-400">Positions</div>
+                            <div class="text-xl font-bold text-cyan">${stats.positions}</div>
+                        </div>
+                        <div class="bg-gray-700 rounded p-3">
+                            <div class="text-sm text-gray-400">Avg Age</div>
+                            <div class="text-xl font-bold text-green">${stats.avgAge}</div>
+                        </div>
+                        <div class="bg-gray-700 rounded p-3">
+                            <div class="text-sm text-gray-400">Gender Diversity</div>
+                            <div class="text-xl font-bold text-yellow">${stats.genderDiversity}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <input type="text" id="candidate-search" placeholder="Search by name, position, skills..." 
+                               class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
+                               onkeyup="filterCandidates(this.value)" aria-label="Search candidates">
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead class="text-left text-xs text-gray-400 border-b border-gray-700">
+                                <tr>
+                                    <th class="pb-2" scope="col">ID</th>
+                                    <th class="pb-2" scope="col">Name</th>
+                                    <th class="pb-2" scope="col">Position</th>
+                                    <th class="pb-2" scope="col">Gender</th>
+                                    <th class="pb-2" scope="col">Race</th>
+                                    <th class="pb-2" scope="col">Age</th>
+                                    <th class="pb-2" scope="col">Education</th>
+                                    <th class="pb-2" scope="col">Skills (Sample)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="candidates-table-body">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            window.allCandidates = candidates;
+            renderCandidatesTable(candidates);
+            
+            // Add ESC key listener
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeModal();
+                }
+            });
+        }
+
+        function calculateCandidateStats(candidates) {
+            const positions = new Set(candidates.map(c => c.position));
+            const avgAge = (candidates.reduce((sum, c) => sum + c.age, 0) / candidates.length).toFixed(1);
+            const genders = new Set(candidates.map(c => c.gender));
+            
+            return {
+                total: candidates.length,
+                positions: positions.size,
+                avgAge: avgAge,
+                genderDiversity: `${genders.size} types`
+            };
+        }
+
+        function renderCandidatesTable(candidates) {
+            const tbody = document.getElementById('candidates-table-body');
+            if (!tbody) return;
+            
+            tbody.innerHTML = candidates.map(candidate => {
+                const skills = candidate.skills ? candidate.skills.slice(0, 3).join(', ') + 
+                    (candidate.skills.length > 3 ? '...' : '') : 'N/A';
+                
+                const genderClass = candidate.gender === 'Male' ? 'bg-blue-900 text-blue-300' :
+                                 candidate.gender === 'Female' ? 'bg-pink-900 text-pink-300' :
+                                 'bg-purple-900 text-purple-300';
+                
+                return `
+                    <tr class="border-b border-gray-800 hover:bg-gray-700">
+                        <td class="py-3 font-mono text-xs">${candidate.candidate_id}</td>
+                        <td class="py-3 font-medium">${candidate.candidateName}</td>
+                        <td class="py-3 text-xs text-cyan">${candidate.position}</td>
+                        <td class="py-3 text-sm">
+                            <span class="px-2 py-1 rounded text-xs ${genderClass}">${candidate.gender}</span>
+                        </td>
+                        <td class="py-3 text-sm">${candidate.race}</td>
+                        <td class="py-3 text-center">${candidate.age}</td>
+                        <td class="py-3 text-xs">${candidate.education || 'N/A'}</td>
+                        <td class="py-3 text-xs text-gray-400">${skills}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function filterCandidates(searchTerm) {
+            if (!searchTerm) {
+                renderCandidatesTable(window.allCandidates);
+                return;
+            }
+            
+            const filtered = window.allCandidates.filter(candidate => {
+                const searchLower = searchTerm.toLowerCase();
+                return (
+                    candidate.candidateName?.toLowerCase().includes(searchLower) ||
+                    candidate.position?.toLowerCase().includes(searchLower) ||
+                    candidate.race?.toLowerCase().includes(searchLower) ||
+                    candidate.gender?.toLowerCase().includes(searchLower) ||
+                    candidate.education?.toLowerCase().includes(searchLower) ||
+                    (candidate.skills && candidate.skills.some(skill => 
+                        skill.toLowerCase().includes(searchLower)
+                    ))
+                );
+            });
+            
+            renderCandidatesTable(filtered);
+        }
+
+        function closeModal() {
+            const modal = document.querySelector('[role="dialog"]');
+            if (modal) {
+                modal.remove();
+            }
+        }
+
+        // Auto-refresh every 30 seconds
+        setInterval(refreshData, 30000);
+    </script>
+</body>
+</html>

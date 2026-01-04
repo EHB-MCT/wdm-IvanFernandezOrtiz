@@ -1,0 +1,45 @@
+{
+  "companies": {
+    "Technology": [
+      "Tech Innovations Inc.", "Digital Solutions Ltd.", "CloudTech Systems",
+      "Enterprise Software Co.", "Startup Ventures LLC", "Innovation Labs",
+      "Software Architects Inc.", "DevOps Masters", "Web Development Studio",
+      "Mobile App Company", "Backend Systems Inc.", "API Development Studio",
+      "Database Solutions Co.", "Server Architecture Firm", "Cloud Backend Pro",
+      "Microservices Masters", "API Gateway Inc.", "Data Systems Co.", "Enterprise Architecture"
+    ],
+    "Design": [
+      "Creative Digital Agency", "Design Studio Pro", "Brand Innovation Lab",
+      "Visual Communications Co.", "UX/UI Design Firm", "Marketing Creative Agency",
+      "Digital Art Studio", "Graphic Design Masters", "Visual Branding Company",
+      "Creative Solutions Inc.", "Innovation Labs", "Product Design Studio",
+      "Design Strategy Co.", "Creative Product Agency", "Design Innovation Lab",
+      "Product UX Firm", "Digital Product Design", "User Centered Design Co.",
+      "Design Thinking Studio", "Product Experience Inc."
+    ],
+    "Data & Analytics": [
+      "DataDriven Solutions", "Analytics Pro Inc.", "Business Intelligence Co.",
+      "Data Science Studio", "Market Research Analytics", "Financial Data Firm",
+      "Healthcare Analytics", "Retail Analytics Pro", "Sports Analytics Inc.",
+      "Social Media Data Co."
+    ],
+    "Management": [
+      "Global Consulting Group", "Project Management Inc.", "Enterprise Solutions Co.",
+      "Strategic Planning Firm", "Business Transformation Co.", "Change Management Pro",
+      "IT Project Leaders", "Construction Management", "Product Development Co.",
+      "Operations Excellence Inc."
+    ],
+    "Marketing": [
+      "Digital Marketing Pro", "Creative Agency Co.", "Brand Marketing Inc.",
+      "Social Media Masters", "Content Creation Studio", "Advertising Agency",
+      "Marketing Analytics Co.", "Growth Hacking Lab", "Email Marketing Pro",
+      "SEO Optimization Inc."
+    ],
+    "DevOps": [
+      "CloudTech Systems", "DevOps Masters", "Infrastructure as Code Co.",
+      "Cloud Native Solutions", "Automation Pro", "Platform Engineering Inc.",
+      "Site Reliability Engineering", "Cloud Architecture Firm", "DevOps Consulting",
+      "Infrastructure Solutions"
+    ]
+  }
+}

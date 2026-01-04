@@ -1,0 +1,40 @@
+{
+  "education": {
+    "Computer Science": [
+      "MIT Computer Science", "Stanford University", "Carnegie Mellon University",
+      "UC Berkeley", "Georgia Tech", "University of Washington", "University of Texas",
+      "Purdue University", "Virginia Tech", "University of Illinois"
+    ],
+    "Design": [
+      "Rhode Island School of Design", "Parsons School of Design", "Pratt Institute",
+      "California Institute of the Arts", "School of Visual Arts", "ArtCenter College of Design",
+      "Savannah College of Art and Design", "Ringling College of Art and Design",
+      "Academy of Art University", "Maryland Institute College of Art"
+    ],
+    "Business": [
+      "Harvard Business School", "Stanford Graduate School", "Wharton School",
+      "MIT Sloan", "Kellogg School of Management", "Chicago Booth", "Columbia Business",
+      "Haas School of Business", "Stern School of Business", "Fuqua School of Business"
+    ],
+    "Data Science": [
+      "Stanford University", "MIT", "UC Berkeley", "Harvard University", "Yale University",
+      "Princeton University", "Columbia University", "University of Chicago",
+      "University of Pennsylvania", "Northwestern University"
+    ],
+    "Liberal Arts": [
+      "Northwestern University", "University of Pennsylvania", "University of Michigan",
+      "UCLA", "University of Texas", "New York University", "Boston University",
+      "University of Southern California", "University of North Carolina", "Indiana University"
+    ],
+    "Engineering": [
+      "Carnegie Mellon University", "MIT", "Stanford University", "UC Berkeley",
+      "Georgia Tech", "University of Illinois", "Purdue University", "University of Texas",
+      "University of Washington", "Virginia Tech"
+    ],
+    "General": [
+      "University of Washington", "Stanford University", "MIT", "UC Berkeley",
+      "Carnegie Mellon University", "Georgia Tech", "University of Illinois", "Purdue University",
+      "University of Texas", "University of Michigan"
+    ]
+  }
+}

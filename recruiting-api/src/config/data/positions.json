@@ -1,0 +1,114 @@
+{
+  "positions": {
+    "Software Developer": {
+      "skills": [
+        "JavaScript", "Python", "React", "Node.js", "TypeScript", "Java", "C#", "Angular",
+        "Vue.js", "Django", "Flask", "Spring Boot", "MongoDB", "PostgreSQL", "MySQL",
+        "Docker", "Kubernetes", "AWS", "Azure", "Git", "CI/CD", "REST APIs", "GraphQL"
+      ],
+      "educationCategory": "Computer Science",
+      "companyCategory": "Technology",
+      "experienceRange": [1, 15]
+    },
+    "Graphic Designer": {
+      "skills": [
+        "Illustrator", "Photoshop", "Figma", "Sketch", "Adobe XD", "InDesign", "CorelDRAW",
+        "Canva", "GIMP", "Figma", "Prototyping", "UI Design", "UX Design", "Brand Design",
+        "Typography", "Color Theory", "Layout Design", "Web Design", "Print Design"
+      ],
+      "educationCategory": "Design",
+      "companyCategory": "Design",
+      "experienceRange": [1, 12]
+    },
+    "Data Analyst": {
+      "skills": [
+        "SQL", "Python", "R", "Tableau", "Power BI", "Excel", "Data Visualization",
+        "Statistical Analysis", "Machine Learning", "Pandas", "NumPy", "Jupyter",
+        "Google Analytics", "SAS", "SPSS", "Data Mining", "Business Intelligence",
+        "Data Warehousing", "ETL", "Dashboard Creation"
+      ],
+      "educationCategory": "Data Science",
+      "companyCategory": "Data & Analytics",
+      "experienceRange": [2, 10]
+    },
+    "Project Manager": {
+      "skills": [
+        "Agile", "Scrum", "Leadership", "Communication", "Risk Management", "Budget Planning",
+        "Team Management", "Stakeholder Management", "Microsoft Project", "JIRA",
+        "Trello", "Asana", "PMP", "PRINCE2", "Change Management", "Quality Assurance",
+        "Resource Allocation", "Timeline Management", "Documentation"
+      ],
+      "educationCategory": "Business",
+      "companyCategory": "Management",
+      "experienceRange": [3, 20]
+    },
+    "UX Designer": {
+      "skills": [
+        "Figma", "Sketch", "Adobe XD", "User Research", "Wireframing", "Prototyping",
+        "Usability Testing", "Information Architecture", "Interaction Design", "Visual Design",
+        "Design Systems", "Journey Mapping", "Persona Development", "A/B Testing",
+        "Responsive Design", "Accessibility", "Mobile Design", "HTML", "CSS", "JavaScript"
+      ],
+      "educationCategory": "Design",
+      "companyCategory": "Design",
+      "experienceRange": [1, 10]
+    },
+    "DevOps Engineer": {
+      "skills": [
+        "Docker", "Kubernetes", "AWS", "Azure", "Google Cloud", "Jenkins", "GitLab CI",
+        "CircleCI", "Terraform", "Ansible", "Puppet", "Chef", "Linux", "Bash Scripting",
+        "Python", "Go", "Monitoring Tools", "Logging", "Security", "Networking"
+      ],
+      "educationCategory": "Engineering",
+      "companyCategory": "DevOps",
+      "experienceRange": [2, 15]
+    },
+    "Marketing Specialist": {
+      "skills": [
+        "SEO", "Content Marketing", "Social Media", "Email Marketing", "Google Analytics",
+        "Facebook Ads", "LinkedIn Marketing", "Twitter Marketing", "Instagram Marketing",
+        "Copywriting", "Brand Strategy", "Market Research", "Campaign Management",
+        "Marketing Automation", "Analytics", "A/B Testing", "PPC Advertising"
+      ],
+      "educationCategory": "Liberal Arts",
+      "companyCategory": "Marketing",
+      "experienceRange": [1, 12]
+    },
+    "Backend Developer": {
+      "skills": [
+        "Java", "Spring Boot", "Node.js", "Python", "Django", "Flask", "Ruby on Rails",
+        "PHP", "Laravel", "C#", ".NET Core", "Go", "Rust", "MongoDB", "PostgreSQL",
+        "MySQL", "Redis", "REST APIs", "GraphQL", "Microservices", "Docker", "Kubernetes"
+      ],
+      "educationCategory": "Computer Science",
+      "companyCategory": "Technology",
+      "experienceRange": [2, 15]
+    },
+    "Product Designer": {
+      "skills": [
+        "UI Design", "UX Design", "Figma", "Sketch", "Adobe Creative Suite", "Prototyping",
+        "User Research", "Design Thinking", "Design Systems", "Wireframing", "Visual Design",
+        "Interaction Design", "Mobile Design", "Web Design", "Typography", "Color Theory",
+        "Brand Design", "CSS", "HTML", "JavaScript"
+      ],
+      "educationCategory": "Design",
+      "companyCategory": "Design",
+      "experienceRange": [1, 12]
+    },
+    "Full Stack Developer": {
+      "skills": [
+        "JavaScript", "React", "Node.js", "Python", "Django", "TypeScript", "Angular",
+        "Vue.js", "MongoDB", "PostgreSQL", "MySQL", "REST APIs", "GraphQL", "Docker",
+        "Kubernetes", "AWS", "Azure", "Git", "CI/CD", "HTML", "CSS", "SASS", "Webpack"
+      ],
+      "educationCategory": "Computer Science",
+      "companyCategory": "Technology",
+      "experienceRange": [3, 15]
+    }
+  },
+  "generation": {
+    "candidatesPerPosition": 10,
+    "minSkillsPerCandidate": 3,
+    "maxSkillsPerCandidate": 6
+  }
+}
