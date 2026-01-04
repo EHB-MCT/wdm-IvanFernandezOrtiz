@@ -1,0 +1,39 @@
+services:
+  # MongoDB Database
+  mongo:
+    image: mongo:latest
+    container_name: recruiting-mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME:
+      MONGO_INITDB_ROOT_PASSWORD:
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  # Recruiting API Backend
+  api:
+    build: ./recruiting-api
+    container_name: recruiting-api
+    restart: always
+    environment:
+      MONGO_URI:
+      PORT:
+    ports:
+      - "5000:5000"
+    depends_on:
+      - mongo
+    volumes:
+      - ./recruiting-api:/app
+      - ./recruiting-game:/recruiting-game
+      - /app/node_modules
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+
+volumes:
+  mongo_data:
